@@ -1,3 +1,4 @@
 */**/__pycache__/*
 scripts/API/key.txt
 /data/*
+/models/*
