@@ -11,7 +11,7 @@ start = data[0]['time_period_end'].split('.')[0]
 end = data[-1]['time_period_end'].split('.')[0]
 frequency = objects.PERIOD_DATA
 
-file = '../data/raw/data_{}_{}_{}.pkl'.format(frequency, start, end)
+file = '../data/raw/data_{}_{}_{}_{}.pkl'.format(objects.SYMBOL_ID, frequency, start, end)
 
 with open(file, 'wb') as f:
 	pickle.dump(data, f)

@@ -8,7 +8,7 @@ def login():
     Logs in
     '''
 
-    with open('API/credentials.json') as f:
+    with open('API/credentials_rb.json') as f:
         login_info = json.load(f)
 
     login = robinhood.login(login_info['username'], login_info['password'])

@@ -4,6 +4,7 @@ import objects
 import numpy as np
 import pickle
 import torch
+import pandas as pd
 
 def make_data_dic(data):
 
@@ -121,7 +122,7 @@ def get_trades(data_dic, time):
 	except KeyError:
 		return np.nan
 
-def max_price_is_open(data_dic, time):
+def max_price_is_open_fn(data_dic, time):
 
 	try:
 		max_price = data_dic[time]['price_high']
@@ -133,7 +134,7 @@ def max_price_is_open(data_dic, time):
 	except KeyError:
 		return np.nan
 
-def min_price_is_open(data_dic, time):
+def min_price_is_open_fn(data_dic, time):
 
 	try:
 		min_price = data_dic[time]['price_low']
@@ -145,7 +146,7 @@ def min_price_is_open(data_dic, time):
 	except KeyError:
 		return np.nan
 
-def max_price_is_close(data_dic, time):
+def max_price_is_close_fn(data_dic, time):
 
 	try:
 		max_price = data_dic[time]['price_high']
@@ -157,7 +158,7 @@ def max_price_is_close(data_dic, time):
 	except KeyError:
 		return np.nan
 
-def min_price_is_close(data_dic, time):
+def min_price_is_close_fn(data_dic, time):
 
 	try:
 		min_price = data_dic[time]['price_low']
@@ -168,24 +169,58 @@ def min_price_is_close(data_dic, time):
 			return 0
 	except KeyError:
 		return np.nan
-		
-def make_x(data_dic):
+
+def make_x_predict(data_dic):
 
 	'''
 	Creates the complete data row for producing predictions
 	'''
 
+	data = make_x(data_dic)
+	data = np.array(data).flatten()
+
+	return data
+
+def make_x_train(data_dic, cols=objects.COLS):
+
+	# Variables needed only in training
+	times = list(data_dic.keys())
+	increased_future = [utils.price_increased_next(data_dic, time, 1) for time in times]
+
+	# All other variables
+	data = make_x(data_dic, for_prediction=False)
+	data = [times, increased_future] + data
+	df = pd.DataFrame(dict(zip(cols, data)))
+
+	# Removing obs with nan
+	n1 = len(df)
+	df = df.dropna(how='any')
+	n2 = len(df)
+	print('\tObservations: {}'.format(n2))
+	print('\tKept {}% of initial obs after dropping columns with missings'.format(round(n2/n1*100)))
+
+	return df
+
+def make_x(data_dic, standardizers_path='../models/standardizers/', for_prediction=True):
+
 	# ID variable: end time of period
-	times = list(data_dic.keys())[0:1]
-	print('Estimating predicitive features for: {}'.format(times[0]))
+	times = list(data_dic.keys())
+	if for_prediction: # leave only the most recent time
+		times = times[0:1]
+		print('Estimating predictive features for: {}'.format(times[0]))
 
 	# Price increased in this observation
 	inc_price = [price_increased_next(data_dic, time, 0) for time in times]
 
 	# Standardized close price
 	close_prices = [data_dic[time]['price_close'] for time in times]
-	with open('../data/standardizer_prices.pkl', 'rb') as f:
-		standardizer = pickle.load(f)
+	if for_prediction:
+		with open(standardizers_path+'standardizer_prices.pkl', 'rb') as f:
+			standardizer = pickle.load(f)
+	else:
+		standardizer = fit_standardizer(close_prices)
+		with open(standardizers_path+'standardizer_prices.pkl', 'wb') as f:
+			pickle.dump(standardizer, f)
 	close_prices_standardized = standardize(close_prices, standardizer)
 
 	# Price increase in last X observations
@@ -201,8 +236,13 @@ def make_x(data_dic):
 
 	# Standardized volume traded
 	volumes = [data_dic[time]['volume_traded'] for time in times]
-	with open('../data/standardizer_volumes.pkl', 'rb') as f:
-		standardizer = pickle.load(f)
+	if for_prediction:
+		with open(standardizers_path+'standardizer_volumes.pkl', 'rb') as f:
+			standardizer = pickle.load(f)
+	else:
+		standardizer = fit_standardizer(volumes)
+		with open(standardizers_path+'standardizer_volumes.pkl', 'wb') as f:
+			pickle.dump(standardizer, f)
 	volumes_standardized = standardize(volumes, standardizer)
 
 	# Volume increased in last X observations
@@ -218,8 +258,13 @@ def make_x(data_dic):
 
 	# Standardized N of trades
 	trades = [data_dic[time]['trades_count'] for time in times]
-	with open('../data/standardizer_trades.pkl', 'rb') as f:
-		standardizer = pickle.load(f)
+	if for_prediction:
+		with open(standardizers_path+'standardizer_trades.pkl', 'rb') as f:
+			standardizer = pickle.load(f)
+	else:
+		standardizer = fit_standardizer(trades)
+		with open(standardizers_path+'standardizer_trades.pkl', 'wb') as f:
+			pickle.dump(standardizer, f)
 	trades_standardized = standardize(trades, standardizer)
 
 	# Trade increased in last X observations
@@ -243,7 +288,7 @@ def make_x(data_dic):
 	min_price_is_close = [min_price_is_close_fn(data_dic, time) for time in times]
 
 	# Putting all together
-	data = np.array([
+	data = [
 		close_prices_standardized,
 		inc_price_last1,
 		inc_price_last2,
@@ -272,7 +317,7 @@ def make_x(data_dic):
 		inc_price,
 		inc_vol,
 		inc_trades
-	]).flatten()
+	]
 
 	return data
 

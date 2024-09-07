@@ -1,9 +1,9 @@
 import sys
 sys.path.insert(1, './utils')
-import time_utils
-import fetch_utils
-import data_utils
-import trading_utils
+import utils_time as time_utils
+import utils_fetch as fetch_utils
+import utils_data as data_utils
+import utils_trade as trading_utils
 from datetime import datetime
 import time
 import torch
@@ -11,7 +11,7 @@ import torch
 def main():
 
 	# Loading model
-	model_path = '../classifiers/torch-net-20240623.pkl'
+	model_path = '../models/classifiers/torch-net-20240623.pkl'
 	model = torch.load(model_path)
 	model.eval()
 	model.to('cpu')
@@ -36,7 +36,7 @@ def main():
 			# Data
 			data = fetch_utils.get_data_min()
 			data_dic = data_utils.make_data_dic(data)
-			X = data_utils.make_x(data_dic)
+			X = data_utils.make_x_predict(data_dic)
 			current_price = data[0]['price_close']
 			print('Current price (API): {}'.format(current_price))
 
