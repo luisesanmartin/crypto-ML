@@ -48,3 +48,14 @@ def future_time(time, n, gap=objects.PERIOD_DATA_MIN):
 	future = time_in_string(future_datetime)
 
 	return future
+	
+def minute_seconds_now():
+
+	'''
+	returns the miuntes and seconds of the current time
+	'''
+
+	now = datetime.now()
+
+	return now.minute, now.second
+	
