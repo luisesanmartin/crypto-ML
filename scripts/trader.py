@@ -17,13 +17,15 @@ def main():
 	model.to('cpu')
 
 	# Globals and variables
-	crypto = 'BTC'
-	amount = 100
+	market_symbol = 'btcusd'
+	amount = 90
+	
+	# Variables for tracking results
 	hold = 0
 	profits_total = 0
 
 	# Logging in
-	login = trading_utils.login()
+	#login = trading_utils.login()
 
 	while True:
 
@@ -47,19 +49,17 @@ def main():
 			if hold == 0:
 				print('Currently not holding...')
 				if prediction == 1:
+					crypto_quantity = round(amount / current_price, 8)
 					#buy_order = trading_utils.buy_crypto(crypto=crypto, usd_amount=amount)
-					buy_order = trading_utils.buy_crypto_limit(crypto=crypto,
-															 usd_amount=amount,
-															 limit_price=current_price)
-					try:
-						crypto_quantity = buy_order['quantity']
-					except KeyError:
-						print(buy_order)
-						raise KeyError
+					buy_order = trading_utils.bs_buy_limit_order(amount=crypto_quantity,
+															 price=current_price,
+															 market_symbol=market_symbol)
+					print(buy_order.content)
+					buy_order = buy_order.json()
 					amount_spent = float(crypto_quantity) * float(buy_order['price'])
 					order_type = buy_order['type']
-					print('Sent a '+order_type+' order to buy '+crypto_quantity+' for $'+str(round(amount_spent, 2)))
-					print('Current price (RobinHood): {}'.format(buy_order['price']))
+					print('Sent a limit order to buy '+str(crypto_quantity)+' for $'+str(round(amount_spent, 2)))
+					print('Current price: {}'.format(buy_order['price']))
 					hold = 1
 				elif prediction == 0:
 					print('Price is predicted to decrease, not buying')
@@ -69,9 +69,11 @@ def main():
 				print('Currently holding crypto...')
 				if prediction == 0:
 					#sell_order = trading_utils.sell_crypto(crypto=crypto, crypto_amount=float(crypto_quantity))
-					sell_order = trading_utils.sell_crypto_limit(crypto=crypto,
-																crypto_amount=float(crypto_quantity),
-																limit_price=current_price)
+					sell_order = trading_utils.bs_sell_limit_order(amount=crypto_quantity,
+																price=current_price,
+																market_symbol=market_symbol)
+					print(sell_order.content)
+					sell_order = sell_order.json()
 					try:
 						amount_sold = float(crypto_quantity) * float(sell_order['price'])
 					except KeyError:
@@ -79,9 +81,9 @@ def main():
 						raise KeyError
 					profits = amount_sold - amount_spent
 					profits_total += profits
-					order_type = sell_order['type']
-					print('Sent a '+order_type+' order to sell '+crypto_quantity+' for $'+str(round(amount_sold, 2)))
-					print('Current price (RobinHood): {}'.format(sell_order['price']))
+					amount = amount_sold
+					print('Sent a limit order to sell '+str(crypto_quantity)+' for $'+str(round(amount_sold, 2)))
+					print('Current price: {}'.format(sell_order['price']))
 					print('Profits with this operation: $'+str(round(profits, 2)))
 					print('Total profits: $'+str(round(profits_total, 2)))
 					hold = 0
