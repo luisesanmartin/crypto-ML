@@ -17,7 +17,12 @@ def make_data_dic(data):
 
     for data_point in data:
 
-    	key = data_point['time_period_end'].split('.')[0]
+    	try:
+    		key = data_point['time_period_end'].split('.')[0]
+    	except TypeError:
+    		print("data_point:")
+    		print(data_point)
+    		raise TypeError
     	data_dic[key] = data_point
 
     return data_dic
