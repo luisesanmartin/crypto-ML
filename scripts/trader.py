@@ -18,9 +18,11 @@ def main():
 
 	# Globals and variables
 	market_symbol = 'btcusd'
-	amount = 95
+	amount = 90
 	margin = 0.008 # 0.4% is the fee for buying and selling in BS
 	fee_rate = 0.004
+	price_wander_wait = 4 # hours we want to wait after making a sell
+	buy_offer = 0.9995
 	
 	# Variables for tracking results
 	hold = 0
@@ -29,6 +31,7 @@ def main():
 	correct_predictions = 0
 	predictions = []
 	prices = []
+	sell = False
 
 	while True:
 
@@ -55,19 +58,20 @@ def main():
 				print('Currently not holding...')
 				
 				if prediction == 1:
+					#price_buy = round(current_price * buy_offer)
+					#crypto_quantity = round(amount / price_buy, 8)
 					crypto_quantity = round(amount / current_price, 8)
 					buy_order = trading_utils.bs_buy_limit_order(amount=crypto_quantity,
+															 #price=price_buy,
 															 price=current_price,
 															 market_symbol=market_symbol)
-					#print(buy_order.content)
 					buy_order = buy_order.json()
 					price_buy = float(buy_order['price'])
 					amount_spent = float(crypto_quantity) * price_buy
 					fee = amount_spent * fee_rate
 					profits_total -= fee
-					#order_type = buy_order['type']
 					print('Sent a limit order to buy '+str(crypto_quantity)+' for $'+str(round(amount_spent, 2)))
-					print('Current price: {}'.format(price_buy))
+					print('Purchase price: {}'.format(price_buy))
 					hold = 1
 				else:
 					print('Price is predicted to decrease, not buying')
@@ -83,7 +87,6 @@ def main():
 						sell_order = trading_utils.bs_sell_limit_order(amount=crypto_quantity,
 																	price=current_price,
 																	market_symbol=market_symbol)
-						#print(sell_order.content)
 						sell_order = sell_order.json()
 						try:
 							amount_sold = float(crypto_quantity) * float(sell_order['price'])
@@ -96,12 +99,14 @@ def main():
 						profits_total += profits
 						amount = amount_sold
 						print('Sent a limit order to sell '+str(crypto_quantity)+' for $'+str(round(amount_sold, 2)))
-						print('Current price: {}'.format(sell_order['price']))
+						print('Sell price: {}'.format(sell_order['price']))
 						print('Profits with this operation: $'+str(round(profits, 2)))
 						#print('Total profits: $'+str(round(profits_total, 2)))
 						hold = 0
+						sell = True
 					else:
 						print("Price is predicted to decrease but it's not higher than the desired margin")
+						print('Last purchase price: ${}'.format(price_buy))
 				else:
 					print('Price is predicted to increase, not selling')
 					pass
@@ -116,7 +121,11 @@ def main():
 					correct_predictions += 1
 				print('Accuracy: {}%'.format(round(correct_predictions/(periods-1)*100)))
 			print('Total profits: $'+str(round(profits_total, 2)))
-			time.sleep(550)
+			if sell:
+				time.sleep(60*60*price_wander_wait) # let the price wander for a few hours
+				sell = False
+			else:
+				time.sleep(550)
 
 		time.sleep(0.5)
 
