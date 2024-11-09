@@ -51,7 +51,7 @@ def price_increased_next(data_dic, time, n, gap=objects.PERIOD_DATA_MIN):
 
 	return increased
 
-def is_valley(data_dic, time, n=objects.VALLEY_PERIODS, gap=objects.PERIOD_DATA_MIN, margin=objects.MARGIN):
+def is_valley(data_dic, time, both_sides= False, n=objects.VALLEY_PERIODS, gap=objects.PERIOD_DATA_MIN, margin=objects.MARGIN):
 
 	'''
 	Detects if a time is a valley with this rule:
@@ -60,16 +60,28 @@ def is_valley(data_dic, time, n=objects.VALLEY_PERIODS, gap=objects.PERIOD_DATA_
 		time price by a rate of (1 + margin)
 	'''
 
+	# Checking all times are in data_dic:
+	for i in range(1, n + 1):
+		future_time = utils_time.future_time(time, i, gap)
+		if future_time not in data_dic:
+			return np.nan
+
+		if both_sides:
+			past_time = utils_time.past_time(time, i, gap)
+			if past_time not in data_dic:
+				return np.nan
+	
 	current_price = data_dic[time]['price_close']
 	margin_condition = False
 
 	for i in range(1, n + 1):
 
-		# Checking period before:
-		past_time = utils_time.past_time(time, i, gap)
-		past_price = data_dic[past_time]['price_close']
-		if past_price < current_price:
-			return 0
+		if both_sides:
+			# Checking periods before:
+			past_time = utils_time.past_time(time, i, gap)
+			past_price = data_dic[past_time]['price_close']
+			if past_price < current_price:
+				return 0
 		
 		# Checking periods after:
 		future_time = utils_time.future_time(time, i, gap)

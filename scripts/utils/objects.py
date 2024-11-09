@@ -6,7 +6,7 @@ TIME_FMT = '%Y-%m-%dT%H:%M:%S'
 DATA_MAX = 100000
 MARGIN = 0.008 # 0.4% is the fee for buying and selling in BS
 FEE_RATE = 0.004
-VALLEY_PERIODS = 6 # 6 times 10 minutes is 1 hour
+VALLEY_PERIODS = 18 # this times 10 minutes divided by 60 is the number of hours
 
 # Columns for in working df
 COLS = [
