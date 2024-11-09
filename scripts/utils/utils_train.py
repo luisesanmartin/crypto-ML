@@ -5,10 +5,11 @@ import sys
 sys.path.insert(1, './utils')
 import nets
 import loader
+import objects
 
-def loss_estimation(predicts, targets):
+def loss_estimation(predicts, targets, device):
 
-	loss = nn.BCEWithLogitsLoss()
+	loss = nn.BCEWithLogitsLoss(pos_weight=torch.FloatTensor([objects.POS_WEIGHTS])).to(device=device)
 	result = loss(predicts, targets)
 
 	return result
@@ -21,7 +22,17 @@ def estimate_accuracy(y_pred, y_actual):
 
 	return n_correct / n
 
-def train(dataset, model, optimizer, epoch=None, loss_file=None, accuracy_file=None, net_file=None):
+def estimate_precision(y_pred, y_actual):
+
+	y_pred_relevant = torch.where(y_actual == 1, y_pred, 0)
+	n = torch.eq(y_actual, 1).sum().item()
+	if n == 0:
+		return -99
+	n_correct = torch.eq(y_pred_relevant, 1).sum().item()
+
+	return n_correct / n
+
+def train(dataset, model, optimizer, device, epoch=None, loss_file=None, accuracy_file=None, net_file=None):
 
 	model = model.to(device=device)
 	model.train()
@@ -33,7 +44,7 @@ def train(dataset, model, optimizer, epoch=None, loss_file=None, accuracy_file=N
 		x = x.float().to(device=device)
 		y = y.to(device=device)
 		output = model(x).squeeze()
-		loss = loss_estimation(output, y)
+		loss = loss_estimation(output, y, device)
 
 		# Backpropagation
 		optimizer.zero_grad()
@@ -58,8 +69,9 @@ def train(dataset, model, optimizer, epoch=None, loss_file=None, accuracy_file=N
 			y_logits = model(x).squeeze()
 			y_pred = torch.round(torch.sigmoid(y_logits))
 		accuracy = estimate_accuracy(y_pred, y)
+		precision = estimate_precision(y_pred, y)
 
-		print(f'Epoch: {epoch}\n\tTrain loss: {loss:.5f}, train accuracy: {accuracy:.2f}')
+		print(f'Epoch: {epoch}\n\tTrain loss: {loss:.5f}, train precision: {precision:.5f}, train accuracy: {accuracy:.5f}')
 
 	# Saving model and loss results
 	if epoch % 100 == 0 and net_file:
