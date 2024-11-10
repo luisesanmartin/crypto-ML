@@ -17,8 +17,8 @@ def main():
 
 	test_data_file = '../data/working/data_test.csv'
 	model_path = '../models/classifiers/torch-net-valleys-20241110.pkl'
-	model = nets.net1().float()
-	#model = torch.load(model_path)
+	#model = nets.net1().float()
+	model = torch.load(model_path)
 	#optimizer = optim.Adam(params=model.parameters(), lr=1e-2)
 	#optimizer = optim.Adam(params=model.parameters(), lr=1e-3)
 	optimizer = optim.SGD(params=model.parameters(), lr=1e-3, momentum=0.9)

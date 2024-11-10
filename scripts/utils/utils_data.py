@@ -1,6 +1,7 @@
 from sklearn import preprocessing
 from sklearn import model_selection
 import utils_time
+import utils_features
 import objects
 import numpy as np
 import pickle
@@ -28,116 +29,6 @@ def make_data_dic(data):
 
     return data_dic
 
-def price_increased(data_dic, time):
-
-	'''
-	Price increased by the end of "time" for that observation
-	'''
-
-	try:
-		price_open = data_dic[time]['price_open']
-		price_close = data_dic[time]['price_close']
-	except KeyError:
-		return np.nan
-
-	if price_close > price_open:
-		return 1
-	else:
-		return 0
-
-def price_increased_next(data_dic, time, n, gap=objects.PERIOD_DATA_MIN):
-
-	future_time = utils_time.future_time(time, n, gap)
-	increased = price_increased(data_dic, future_time)
-
-	return increased
-
-def is_valley(data_dic, time, both_sides= False, n=objects.VALLEY_PERIODS, gap=objects.PERIOD_DATA_MIN, margin=objects.MARGIN):
-
-	'''
-	Detects if a time is a valley with this rule:
-	- the price for this time is the lowest in n periods before and after
-	- at least one of the prices in n periods after is higher than the
-		time price by a rate of (1 + margin)
-	'''
-
-	# Checking all times are in data_dic:
-	for i in range(1, n + 1):
-		future_time = utils_time.future_time(time, i, gap)
-		if future_time not in data_dic:
-			return np.nan
-
-		if both_sides:
-			past_time = utils_time.past_time(time, i, gap)
-			if past_time not in data_dic:
-				return np.nan
-	
-	current_price = data_dic[time]['price_close']
-	margin_condition = False
-
-	for i in range(1, n + 1):
-
-		if both_sides:
-			# Checking periods before:
-			past_time = utils_time.past_time(time, i, gap)
-			past_price = data_dic[past_time]['price_close']
-			if past_price < current_price:
-				return 0
-		
-		# Checking periods after:
-		future_time = utils_time.future_time(time, i, gap)
-		future_price = data_dic[future_time]['price_close']
-		if future_price < current_price:
-			return 0
-		if future_price > current_price * (1 + margin):
-			margin_condition = True
-
-	if margin_condition:
-		return 1
-	else:
-		return 0
-
-def attribute_increased_for_time(data_dic, time, attribute, gap=objects.PERIOD_DATA_MIN):
-
-	'''
-	Attribute increased for 'time' with respect of its previous observation
-	'''
-
-	previous_time = utils_time.past_time(time, 1, gap)
-	
-	try:
-		attribute_now = data_dic[time][attribute]
-		attribute_past = data_dic[previous_time][attribute]
-	except KeyError:
-		return np.nan
-
-	if attribute_now > attribute_past:
-		return 1
-	else:
-		return 0
-
-def volume_increased_past(data_dic, time, n, gap=objects.PERIOD_DATA_MIN):
-
-	'''
-	Volume increased n times ago with respect of its previous (n-1) observation
-	'''
-
-	initial_time = utils_time.past_time(time, n, gap)
-	result = attribute_increased_for_time(data_dic, initial_time, 'volume_traded', gap)
-
-	return result
-
-def trades_increased_past(data_dic, time, n, gap=objects.PERIOD_DATA_MIN):
-
-	'''
-	Trades increased n times ago with respect of its previous (n-1) observation
-	'''
-
-	initial_time = utils_time.past_time(time, n, gap)
-	result = attribute_increased_for_time(data_dic, initial_time, 'trades_count', gap)
-
-	return result
-
 def fit_standardizer(vector):
 
 	array = np.array(vector).reshape(-1, 1)
@@ -151,75 +42,6 @@ def standardize(vector, standardizer):
 	result = standardizer.transform(array).flatten()
 
 	return result
-
-def get_price(data_dic, time):
-
-	try:
-		return data_dic[time]['price_close']
-	except KeyError:
-		return np.nan
-
-def get_volume(data_dic, time):
-
-	try:
-		return data_dic[time]['volume_traded']
-	except KeyError:
-		return np.nan
-
-def get_trades(data_dic, time):
-
-	try:
-		return data_dic[time]['trades_count']
-	except KeyError:
-		return np.nan
-
-def max_price_is_open_fn(data_dic, time):
-
-	try:
-		max_price = data_dic[time]['price_high']
-		open_price = data_dic[time]['price_open']
-		if open_price == max_price:
-			return 1
-		else:
-			return 0
-	except KeyError:
-		return np.nan
-
-def min_price_is_open_fn(data_dic, time):
-
-	try:
-		min_price = data_dic[time]['price_low']
-		open_price = data_dic[time]['price_open']
-		if open_price == min_price:
-			return 1
-		else:
-			return 0
-	except KeyError:
-		return np.nan
-
-def max_price_is_close_fn(data_dic, time):
-
-	try:
-		max_price = data_dic[time]['price_high']
-		close_price = data_dic[time]['price_close']
-		if close_price == max_price:
-			return 1
-		else:
-			return 0
-	except KeyError:
-		return np.nan
-
-def min_price_is_close_fn(data_dic, time):
-
-	try:
-		min_price = data_dic[time]['price_low']
-		close_price = data_dic[time]['price_close']
-		if close_price == min_price:
-			return 1
-		else:
-			return 0
-	except KeyError:
-		return np.nan
 
 def make_x_predict(data_dic):
 
@@ -236,7 +58,7 @@ def make_data_train_test(data_dic, cols=objects.COLS):
 
 	# Variables needed only in training
 	times = list(data_dic.keys())
-	valleys = [is_valley(data_dic, time) for time in times]
+	valleys = [utils_features.is_valley(data_dic, time) for time in times]
 
 	# All other variables
 	data = make_x(data_dic, for_prediction=False)
@@ -254,7 +76,12 @@ def make_data_train_test(data_dic, cols=objects.COLS):
 
 	return df_train, df_test
 
-def make_x(data_dic, standardizers_path='../models/standardizers/', for_prediction=True):
+def make_x(
+	data_dic,
+	standardizers_path='../models/standardizers/',
+	binners_path = '../models/binners/',
+	for_prediction=True
+	):
 
 	# ID variable: end time of period
 	times = list(data_dic.keys())
@@ -263,7 +90,7 @@ def make_x(data_dic, standardizers_path='../models/standardizers/', for_predicti
 		print('Estimating predictive features for: {}'.format(times[0]))
 
 	# Price increased in this observation
-	inc_price = [price_increased_next(data_dic, time, 0) for time in times]
+	inc_price = [utils_features.price_increased_next(data_dic, time, 0) for time in times]
 
 	# Standardized close price
 	close_prices = [data_dic[time]['price_close'] for time in times]
@@ -277,15 +104,15 @@ def make_x(data_dic, standardizers_path='../models/standardizers/', for_predicti
 	close_prices_standardized = standardize(close_prices, standardizer)
 
 	# Price increase in last X observations
-	inc_price_last1 = [price_increased_next(data_dic, time, -1) for time in times]
-	inc_price_last2 = [price_increased_next(data_dic, time, -2) for time in times]
-	inc_price_last3 = [price_increased_next(data_dic, time, -3) for time in times]
-	inc_price_last4 = [price_increased_next(data_dic, time, -4) for time in times]
-	inc_price_last5 = [price_increased_next(data_dic, time, -5) for time in times]
-	inc_price_last6 = [price_increased_next(data_dic, time, -6) for time in times]
+	inc_price_last1 = [utils_features.price_increased_next(data_dic, time, -1) for time in times]
+	inc_price_last2 = [utils_features.price_increased_next(data_dic, time, -2) for time in times]
+	inc_price_last3 = [utils_features.price_increased_next(data_dic, time, -3) for time in times]
+	inc_price_last4 = [utils_features.price_increased_next(data_dic, time, -4) for time in times]
+	inc_price_last5 = [utils_features.price_increased_next(data_dic, time, -5) for time in times]
+	inc_price_last6 = [utils_features.price_increased_next(data_dic, time, -6) for time in times]
 
 	# Volume increased in this observation
-	inc_vol = [attribute_increased_for_time(data_dic, time, 'volume_traded') for time in times]
+	inc_vol = [utils_features.attribute_increased_for_time(data_dic, time, 'volume_traded') for time in times]
 
 	# Standardized volume traded
 	volumes = [data_dic[time]['volume_traded'] for time in times]
@@ -299,15 +126,15 @@ def make_x(data_dic, standardizers_path='../models/standardizers/', for_predicti
 	volumes_standardized = standardize(volumes, standardizer)
 
 	# Volume increased in last X observations
-	inc_vol_last1 = [volume_increased_past(data_dic, time, 1) for time in times]
-	inc_vol_last2 = [volume_increased_past(data_dic, time, 2) for time in times]
-	inc_vol_last3 = [volume_increased_past(data_dic, time, 3) for time in times]
-	inc_vol_last4 = [volume_increased_past(data_dic, time, 4) for time in times]
-	inc_vol_last5 = [volume_increased_past(data_dic, time, 5) for time in times]
-	inc_vol_last6 = [volume_increased_past(data_dic, time, 6) for time in times]
+	inc_vol_last1 = [utils_features.volume_increased_past(data_dic, time, 1) for time in times]
+	inc_vol_last2 = [utils_features.volume_increased_past(data_dic, time, 2) for time in times]
+	inc_vol_last3 = [utils_features.volume_increased_past(data_dic, time, 3) for time in times]
+	inc_vol_last4 = [utils_features.volume_increased_past(data_dic, time, 4) for time in times]
+	inc_vol_last5 = [utils_features.volume_increased_past(data_dic, time, 5) for time in times]
+	inc_vol_last6 = [utils_features.volume_increased_past(data_dic, time, 6) for time in times]
 
 	# Trade increased in this observation
-	inc_trades = [attribute_increased_for_time(data_dic, time, 'trades_count') for time in times]
+	inc_trades = [utils_features.attribute_increased_for_time(data_dic, time, 'trades_count') for time in times]
 
 	# Standardized N of trades
 	trades = [data_dic[time]['trades_count'] for time in times]
@@ -321,24 +148,66 @@ def make_x(data_dic, standardizers_path='../models/standardizers/', for_predicti
 	trades_standardized = standardize(trades, standardizer)
 
 	# Trade increased in last X observations
-	inc_trade_last1 = [trades_increased_past(data_dic, time, 1) for time in times]
-	inc_trade_last2 = [trades_increased_past(data_dic, time, 1) for time in times]
-	inc_trade_last3 = [trades_increased_past(data_dic, time, 1) for time in times]
-	inc_trade_last4 = [trades_increased_past(data_dic, time, 1) for time in times]
-	inc_trade_last5 = [trades_increased_past(data_dic, time, 1) for time in times]
-	inc_trade_last6 = [trades_increased_past(data_dic, time, 1) for time in times]
+	inc_trade_last1 = [utils_features.trades_increased_past(data_dic, time, 1) for time in times]
+	inc_trade_last2 = [utils_features.trades_increased_past(data_dic, time, 1) for time in times]
+	inc_trade_last3 = [utils_features.trades_increased_past(data_dic, time, 1) for time in times]
+	inc_trade_last4 = [utils_features.trades_increased_past(data_dic, time, 1) for time in times]
+	inc_trade_last5 = [utils_features.trades_increased_past(data_dic, time, 1) for time in times]
+	inc_trade_last6 = [utils_features.trades_increased_past(data_dic, time, 1) for time in times]
+
+	# Standardized price ranges (open-close)
+	price_ranges_oc = [utils_features.price_range_oc(data_dic, time) for time in times]
+	standardizer_path = standardizers_path + 'standardizer_price_ranges_oc.pkl'
+	if for_prediction:
+		with open(standardizer_path, 'rb') as f:
+			standardizer = pickle.load(f)
+	else:
+		standardizer = fit_standardizer(price_ranges_oc)
+		with open(standardizer_path, 'wb') as f:
+			pickle.dump(standardizer, f)
+	price_ranges_oc_standardized = standardize(price_ranges_oc, standardizer)
+
+	# Standardized price ranges (high-low)
+	price_ranges_hl = [utils_features.price_range_hl(data_dic, time) for time in times]
+	standardizer_path = standardizers_path + 'standardizer_price_ranges_hl.pkl'
+	if for_prediction:
+		with open(standardizer_path, 'rb') as f:
+			standardizer = pickle.load(f)
+	else:
+		standardizer = fit_standardizer(price_ranges_hl)
+		with open(standardizer_path, 'wb') as f:
+			pickle.dump(standardizer, f)
+	price_ranges_hl_standardized = standardize(price_ranges_hl, standardizer)
+
+	# Price range bins (OC)
+	price_ranges_oc_np = np.array(price_ranges_oc).reshape(-1, 1)
+	binner_path = binners_path + 'standardizer_price_range_bins_oc.pkl'
+	if for_prediction:
+		with open(binner_path, 'rb') as f:
+			binner = pickle.load(f)
+	else:
+		binner = preprocessing.KBinsDiscretizer(n_bins=5, encode='onehot-dense', strategy='uniform')
+		binner.fit(price_ranges_oc_np)
+		with open(binner_path, 'wb') as f:
+			pickle.dump(binner, f)
+	bins = binner.transform(price_ranges_oc_np)
+	price_ranges_oc_bin1 = bins[:, 0]
+	price_ranges_oc_bin2 = bins[:, 1]
+	price_ranges_oc_bin3 = bins[:, 2]
+	price_ranges_oc_bin4 = bins[:, 3]
+	price_ranges_oc_bin5 = bins[:, 4]
 
 	# Max price is open price
-	max_price_is_open = [max_price_is_open_fn(data_dic, time) for time in times]
+	max_price_is_open = [utils_features.max_price_is_open_fn(data_dic, time) for time in times]
 
 	# Max price is close price
-	max_price_is_close = [max_price_is_close_fn(data_dic, time) for time in times]
+	max_price_is_close = [utils_features.max_price_is_close_fn(data_dic, time) for time in times]
 
 	# Min price is open price
-	min_price_is_open = [min_price_is_open_fn(data_dic, time) for time in times]
+	min_price_is_open = [utils_features.min_price_is_open_fn(data_dic, time) for time in times]
 
 	# Min price is close price
-	min_price_is_close = [min_price_is_close_fn(data_dic, time) for time in times]
+	min_price_is_close = [utils_features.min_price_is_close_fn(data_dic, time) for time in times]
 
 	# Putting all together
 	data = [
@@ -363,13 +232,37 @@ def make_x(data_dic, standardizers_path='../models/standardizers/', for_predicti
 		inc_trade_last4,
 		inc_trade_last5,
 		inc_trade_last6,
+		price_ranges_oc_standardized,
+		#inc_price_range_oc_last1,
+		#inc_price_range_oc_last2,
+		#inc_price_range_oc_last3,
+		#inc_price_range_oc_last4,
+		#inc_price_range_oc_last5,
+		#inc_price_range_oc_last6,
+		price_ranges_hl_standardized,
+		#inc_price_range_hl_last1,
+		#inc_price_range_hl_last2,
+		#inc_price_range_hl_last3,
+		#inc_price_range_hl_last4,
+		#inc_price_range_hl_last5,
+		#inc_price_range_hl_last6,
+		price_ranges_oc_bin1,
+		price_ranges_oc_bin2,
+		price_ranges_oc_bin3,
+		price_ranges_oc_bin4,
+		price_ranges_oc_bin5,
+		#PRICE RANGE BINS HL,
 		max_price_is_open,
 		max_price_is_close,
+		# MAX PRICE IS CLOSE TO OPEN OR CLOSE
 		min_price_is_open,
 		min_price_is_close,
+		# MIN PRICE IS CLOSE TO OPEN OR CLOSE
 		inc_price,
 		inc_vol,
-		inc_trades
+		inc_trades,
+		#inc_price_range_oc,
+		#inc_price_range_hl,
 	]
 
 	return data

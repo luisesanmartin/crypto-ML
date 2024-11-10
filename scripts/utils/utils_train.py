@@ -81,7 +81,7 @@ def train(
 			#for loss_row in losses:
 				#writer.writerow(loss_row)
 
-	if epoch % 10 == 0 and test_data_file:
+	if epoch % 100 == 0 and test_data_file:
 
 		# test set
 		df = pd.read_csv(test_data_file)

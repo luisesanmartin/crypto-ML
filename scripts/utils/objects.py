@@ -10,7 +10,7 @@ VALLEY_PERIODS = 18 # this times 10 minutes divided by 60 is the number of hours
 POS_WEIGHTS = 74168/5184 # neg samples / pos samples
 TEST_SIZE = 0.2
 
-# Columns for in working df
+# Columns in working df
 COLS = [
 	'time',				# Obs ID
 	'valley',		    # Y
@@ -35,6 +35,13 @@ COLS = [
 	'inc_trades_last_4',
 	'inc_trades_last_5',
 	'inc_trades_last_6',
+	'price_ranges_oc_standardized',
+	'price_ranges_hl_standardized',
+	'price_ranges_oc_bin1',
+	'price_ranges_oc_bin2',
+	'price_ranges_oc_bin3',
+	'price_ranges_oc_bin4',
+	'price_ranges_oc_bin5',
 	'max_price_is_open',
 	'max_price_is_close',
 	'min_price_is_open',
