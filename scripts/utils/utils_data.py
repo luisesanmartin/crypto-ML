@@ -1,4 +1,5 @@
 from sklearn import preprocessing
+from sklearn import model_selection
 import utils_time
 import objects
 import numpy as np
@@ -50,6 +51,51 @@ def price_increased_next(data_dic, time, n, gap=objects.PERIOD_DATA_MIN):
 	increased = price_increased(data_dic, future_time)
 
 	return increased
+
+def is_valley(data_dic, time, both_sides= False, n=objects.VALLEY_PERIODS, gap=objects.PERIOD_DATA_MIN, margin=objects.MARGIN):
+
+	'''
+	Detects if a time is a valley with this rule:
+	- the price for this time is the lowest in n periods before and after
+	- at least one of the prices in n periods after is higher than the
+		time price by a rate of (1 + margin)
+	'''
+
+	# Checking all times are in data_dic:
+	for i in range(1, n + 1):
+		future_time = utils_time.future_time(time, i, gap)
+		if future_time not in data_dic:
+			return np.nan
+
+		if both_sides:
+			past_time = utils_time.past_time(time, i, gap)
+			if past_time not in data_dic:
+				return np.nan
+	
+	current_price = data_dic[time]['price_close']
+	margin_condition = False
+
+	for i in range(1, n + 1):
+
+		if both_sides:
+			# Checking periods before:
+			past_time = utils_time.past_time(time, i, gap)
+			past_price = data_dic[past_time]['price_close']
+			if past_price < current_price:
+				return 0
+		
+		# Checking periods after:
+		future_time = utils_time.future_time(time, i, gap)
+		future_price = data_dic[future_time]['price_close']
+		if future_price < current_price:
+			return 0
+		if future_price > current_price * (1 + margin):
+			margin_condition = True
+
+	if margin_condition:
+		return 1
+	else:
+		return 0
 
 def attribute_increased_for_time(data_dic, time, attribute, gap=objects.PERIOD_DATA_MIN):
 
@@ -186,15 +232,15 @@ def make_x_predict(data_dic):
 
 	return data
 
-def make_x_train(data_dic, cols=objects.COLS):
+def make_data_train_test(data_dic, cols=objects.COLS):
 
 	# Variables needed only in training
 	times = list(data_dic.keys())
-	increased_future = [utils.price_increased_next(data_dic, time, 1) for time in times]
+	valleys = [is_valley(data_dic, time) for time in times]
 
 	# All other variables
 	data = make_x(data_dic, for_prediction=False)
-	data = [times, increased_future] + data
+	data = [times, valleys] + data
 	df = pd.DataFrame(dict(zip(cols, data)))
 
 	# Removing obs with nan
@@ -204,7 +250,9 @@ def make_x_train(data_dic, cols=objects.COLS):
 	print('\tObservations: {}'.format(n2))
 	print('\tKept {}% of initial obs after dropping columns with missings'.format(round(n2/n1*100)))
 
-	return df
+	df_train, df_test = model_selection.train_test_split(df, test_size=objects.TEST_SIZE)
+
+	return df_train, df_test
 
 def make_x(data_dic, standardizers_path='../models/standardizers/', for_prediction=True):
 

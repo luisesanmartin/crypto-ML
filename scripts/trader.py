@@ -7,6 +7,7 @@ import utils_trade as trading_utils
 from datetime import datetime
 import time
 import torch
+import objects
 
 def main():
 
@@ -19,8 +20,8 @@ def main():
 	# Globals and variables
 	market_symbol = 'btcusd'
 	amount = 90
-	margin = 0.008 # 0.4% is the fee for buying and selling in BS
-	fee_rate = 0.004
+	margin = objects.MARGIN
+	fee_rate = objects.FEE_RATE
 	price_wander_wait = 4 # hours we want to wait after making a sell
 	buy_offer = 0.9995
 	
