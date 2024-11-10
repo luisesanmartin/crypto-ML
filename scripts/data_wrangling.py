@@ -15,20 +15,16 @@ with open(file, 'rb') as f:
 
 data_dic = utils_data.make_data_dic(data)
 
-######################
-## Sample selection ##
-######################
-
-# To add
-
 ###############
 ## Variables ##
 ###############
 
 print("2: Creating variables...")
-df = utils_data.make_data_train(data_dic)
+df_train, df_test = utils_data.make_data_train_test(data_dic)
 
 # Exporting
-print('3: Saving dataframe...')
-file = '../data/working/data.csv'
-df.to_csv(file, index=False)
+print('3: Saving dataframes...')
+file = '../data/working/data_train.csv'
+df_train.to_csv(file, index=False)
+file = '../data/working/data_test.csv'
+df_train.to_csv(file, index=False)

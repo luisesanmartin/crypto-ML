@@ -1,4 +1,5 @@
 from sklearn import preprocessing
+from sklearn import model_selection
 import utils_time
 import objects
 import numpy as np
@@ -231,7 +232,7 @@ def make_x_predict(data_dic):
 
 	return data
 
-def make_data_train(data_dic, cols=objects.COLS):
+def make_data_train_test(data_dic, cols=objects.COLS):
 
 	# Variables needed only in training
 	times = list(data_dic.keys())
@@ -249,7 +250,9 @@ def make_data_train(data_dic, cols=objects.COLS):
 	print('\tObservations: {}'.format(n2))
 	print('\tKept {}% of initial obs after dropping columns with missings'.format(round(n2/n1*100)))
 
-	return df
+	df_train, df_test = model_selection.train_test_split(df, test_size=objects.TEST_SIZE)
+
+	return df_train, df_test
 
 def make_x(data_dic, standardizers_path='../models/standardizers/', for_prediction=True):
 

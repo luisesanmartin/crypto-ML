@@ -7,7 +7,8 @@ DATA_MAX = 100000
 MARGIN = 0.008 # 0.4% is the fee for buying and selling in BS
 FEE_RATE = 0.004
 VALLEY_PERIODS = 18 # this times 10 minutes divided by 60 is the number of hours
-POS_WEIGHTS = 92720/6470 # neg samples / pos samples
+POS_WEIGHTS = 74168/5184 # neg samples / pos samples
+TEST_SIZE = 0.2
 
 # Columns for in working df
 COLS = [

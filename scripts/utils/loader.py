@@ -4,7 +4,7 @@ import pandas as pd
 
 class cryptoData(Dataset):
 
-	def __init__(self, data_file='../data/working/data.csv'):
+	def __init__(self, data_file='../data/working/data_train.csv'):
 		self.full_data = pd.read_csv(data_file)
 		self.features  = self.full_data.drop(columns=['time', 'valley']).to_numpy()
 		self.labels    = self.full_data['valley'].to_numpy()
