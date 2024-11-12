@@ -197,6 +197,24 @@ def make_x(
 	price_ranges_oc_bin4 = bins[:, 3]
 	price_ranges_oc_bin5 = bins[:, 4]
 
+	# Price range bins (HL)
+	price_ranges_hl_np = np.array(price_ranges_hl).reshape(-1, 1)
+	binner_path = binners_path + 'standardizer_price_range_bins_hl.pkl'
+	if for_prediction:
+		with open(binner_path, 'rb') as f:
+			binner = pickle.load(f)
+	else:
+		binner = preprocessing.KBinsDiscretizer(n_bins=5, encode='onehot-dense', strategy='uniform')
+		binner.fit(price_ranges_hl_np)
+		with open(binner_path, 'wb') as f:
+			pickle.dump(binner, f)
+	bins = binner.transform(price_ranges_hl_np)
+	price_ranges_hl_bin1 = bins[:, 0]
+	price_ranges_hl_bin2 = bins[:, 1]
+	price_ranges_hl_bin3 = bins[:, 2]
+	price_ranges_hl_bin4 = bins[:, 3]
+	price_ranges_hl_bin5 = bins[:, 4]
+
 	# Max price is open price
 	max_price_is_open = [utils_features.max_price_is_open_fn(data_dic, time) for time in times]
 
@@ -208,6 +226,12 @@ def make_x(
 
 	# Min price is close price
 	min_price_is_close = [utils_features.min_price_is_close_fn(data_dic, time) for time in times]
+
+	# OC price range increased
+	inc_price_range_oc = [utils_features.price_range_oc_increase(data_dic, time) for time in times]
+
+	# HL price range increased
+	inc_price_range_hl = [utils_features.price_range_hl_increase(data_dic, time) for time in times]
 
 	# Putting all together
 	data = [
@@ -251,7 +275,11 @@ def make_x(
 		price_ranges_oc_bin3,
 		price_ranges_oc_bin4,
 		price_ranges_oc_bin5,
-		#PRICE RANGE BINS HL,
+		price_ranges_hl_bin1,
+		price_ranges_hl_bin2,
+		price_ranges_hl_bin3,
+		price_ranges_hl_bin4,
+		price_ranges_hl_bin5,
 		max_price_is_open,
 		max_price_is_close,
 		# MAX PRICE IS CLOSE TO OPEN OR CLOSE
@@ -261,8 +289,8 @@ def make_x(
 		inc_price,
 		inc_vol,
 		inc_trades,
-		#inc_price_range_oc,
-		#inc_price_range_hl,
+		inc_price_range_oc,
+		inc_price_range_hl,
 	]
 
 	return data

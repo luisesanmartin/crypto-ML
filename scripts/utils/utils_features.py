@@ -199,3 +199,39 @@ def price_range_hl(data_dic, time):
 		return price_high - price_low
 	except KeyError:
 		return np.nan
+
+def price_range_oc_increase(data_dic, time):
+
+	'''
+	Open-close price range increased in time,
+	with respect of the previous time
+	'''
+
+	previous_time = utils_time.past_time(time, 1)
+	price_range_now = price_range_oc(data_dic, time)
+	price_range_previous = price_range_oc(data_dic, previous_time)
+
+	if np.isnan(price_range_now) or np.isnan(price_range_previous):
+		return np.nan
+	elif price_range_now > price_range_previous:
+		return 1
+	else:
+		return 0
+
+def price_range_hl_increase(data_dic, time):
+
+	'''
+	High-low price range increased in time,
+	with respect of the previous time
+	'''
+
+	previous_time = utils_time.past_time(time, 1)
+	price_range_now = price_range_hl(data_dic, time)
+	price_range_previous = price_range_hl(data_dic, previous_time)
+
+	if np.isnan(price_range_now) or np.isnan(price_range_previous):
+		return np.nan
+	elif price_range_now > price_range_previous:
+		return 1
+	else:
+		return 0

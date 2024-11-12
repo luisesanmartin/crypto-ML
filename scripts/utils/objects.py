@@ -43,11 +43,18 @@ COLS = [
 	'price_ranges_oc_bin3',
 	'price_ranges_oc_bin4',
 	'price_ranges_oc_bin5',
+	'price_ranges_hl_bin1',
+	'price_ranges_hl_bin2',
+	'price_ranges_hl_bin3',
+	'price_ranges_hl_bin4',
+	'price_ranges_hl_bin5',
 	'max_price_is_open',
 	'max_price_is_close',
 	'min_price_is_open',
 	'min_price_is_close',
 	'inc_price',
 	'inc_vol',
-	'inc_trades'
+	'inc_trades',
+	'inc_price_range_oc',
+	'inc_price_range_hl'
 ]
