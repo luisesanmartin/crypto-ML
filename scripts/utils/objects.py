@@ -9,6 +9,7 @@ FEE_RATE = 0.004
 VALLEY_PERIODS = 18 # this times 10 minutes divided by 60 is the number of hours
 POS_WEIGHTS = 74168/5184 # neg samples / pos samples
 TEST_SIZE = 0.2
+PREDICT_THRESHOLD = 0.7
 
 # Columns in working df
 COLS = [

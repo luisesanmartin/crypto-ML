@@ -43,6 +43,17 @@ def estimate_precision(y_pred, y_actual):
 
 	return n_correct / n
 
+def precision_with_threshold(y_score, y_actual, threshold=objects.PREDICT_THRESHOLD):
+
+	y_pred = torch.where(y_score > threshold, 1, 0)
+	y_actual_relevant = torch.where(y_pred == 1, y_actual, 0)
+	n = torch.eq(y_pred, 1).sum().item()
+	if n == 0:
+		return -99
+	n_correct = torch.eq(y_actual_relevant, 1).sum().item()
+
+	return n_correct / n
+
 def train(
 	dataset,
 	model,
@@ -94,14 +105,17 @@ def train(
 		model.eval()
 		with torch.no_grad():
 			y_logits = model(x_test).squeeze()
-			y_pred = torch.round(torch.sigmoid(y_logits))
+			y_score = torch.sigmoid(y_logits)
+			y_pred = torch.round(y_score)
 		accuracy = estimate_accuracy(y_pred, y_test)
 		precision = estimate_precision(y_pred, y_test)
+		precision_threshold = precision_with_threshold(y_score, y_test)
 		recall = estimate_recall(y_pred, y_test)
 
 		print(f'Epoch: {epoch}')
 		print(f'\tLoss: {loss:.5f}')
 		print(f'\tPrecision: {precision:.5f}')
+		print(f'\tPrecision at {objects.PREDICT_THRESHOLD:.2f} threshold: {precision_threshold:.5f}')
 		print(f'\tRecall: {recall:.5f}')
 		print(f'\tAccuracy: {accuracy:.5f}')
 
