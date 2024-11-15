@@ -197,6 +197,28 @@ def make_x(
 	price_ranges_oc_bin4 = bins[:, 3]
 	price_ranges_oc_bin5 = bins[:, 4]
 
+	# Price range bins (OC) quantiles
+	binner_path = binners_path + 'standardizer_price_range_bins_oc_quantiles.pkl'
+	if for_prediction:
+		with open(binner_path, 'rb') as f:
+			binner = pickle.load(f)
+	else:
+		binner = preprocessing.KBinsDiscretizer(n_bins=10, encode='onehot-dense', strategy='quantile')
+		binner.fit(price_ranges_oc_np)
+		with open(binner_path, 'wb') as f:
+			pickle.dump(binner, f)
+	bins = binner.transform(price_ranges_oc_np)
+	price_ranges_oc_bin1_quant = bins[:, 0]
+	price_ranges_oc_bin2_quant = bins[:, 1]
+	price_ranges_oc_bin3_quant = bins[:, 2]
+	price_ranges_oc_bin4_quant = bins[:, 3]
+	price_ranges_oc_bin5_quant = bins[:, 4]
+	price_ranges_oc_bin6_quant = bins[:, 5]
+	price_ranges_oc_bin7_quant = bins[:, 6]
+	price_ranges_oc_bin8_quant = bins[:, 7]
+	price_ranges_oc_bin9_quant = bins[:, 8]
+	price_ranges_oc_bin10_quant = bins[:, 9]
+
 	# Price range bins (HL)
 	price_ranges_hl_np = np.array(price_ranges_hl).reshape(-1, 1)
 	binner_path = binners_path + 'standardizer_price_range_bins_hl.pkl'
@@ -215,6 +237,28 @@ def make_x(
 	price_ranges_hl_bin4 = bins[:, 3]
 	price_ranges_hl_bin5 = bins[:, 4]
 
+	# Price range bins (HL) quantiles
+	binner_path = binners_path + 'standardizer_price_range_bins_hl_quantiles.pkl'
+	if for_prediction:
+		with open(binner_path, 'rb') as f:
+			binner = pickle.load(f)
+	else:
+		binner = preprocessing.KBinsDiscretizer(n_bins=10, encode='onehot-dense', strategy='quantile')
+		binner.fit(price_ranges_hl_np)
+		with open(binner_path, 'wb') as f:
+			pickle.dump(binner, f)
+	bins = binner.transform(price_ranges_hl_np)
+	price_ranges_hl_bin1_quant = bins[:, 0]
+	price_ranges_hl_bin2_quant = bins[:, 1]
+	price_ranges_hl_bin3_quant = bins[:, 2]
+	price_ranges_hl_bin4_quant = bins[:, 3]
+	price_ranges_hl_bin5_quant = bins[:, 4]
+	price_ranges_hl_bin6_quant = bins[:, 5]
+	price_ranges_hl_bin7_quant = bins[:, 6]
+	price_ranges_hl_bin8_quant = bins[:, 7]
+	price_ranges_hl_bin9_quant = bins[:, 8]
+	price_ranges_hl_bin10_quant = bins[:, 9]
+
 	# Max price is open price
 	max_price_is_open = [utils_features.max_price_is_open_fn(data_dic, time) for time in times]
 
@@ -232,6 +276,31 @@ def make_x(
 
 	# HL price range increased
 	inc_price_range_hl = [utils_features.price_range_hl_increase(data_dic, time) for time in times]
+
+	# Max price is within 1%, 0.1%, 0.05%, 0.01% of close price
+	max_close_01 = [utils_features.x_is_within_gap(data_dic[time]['price_high'], data_dic[time]['price_close'], 0.01) for time in times]
+	max_close_001 = [utils_features.x_is_within_gap(data_dic[time]['price_high'], data_dic[time]['price_close'], 0.001) for time in times]
+	max_close_0005 = [utils_features.x_is_within_gap(data_dic[time]['price_high'], data_dic[time]['price_close'], 0.0005) for time in times]
+	max_close_0001 = [utils_features.x_is_within_gap(data_dic[time]['price_high'], data_dic[time]['price_close'], 0.0001) for time in times]
+
+	# Max price is within 1%, 0.1%, 0.05%, 0.01% of open price
+	max_open_01 = [utils_features.x_is_within_gap(data_dic[time]['price_high'], data_dic[time]['price_open'], 0.01) for time in times]
+	max_open_001 = [utils_features.x_is_within_gap(data_dic[time]['price_high'], data_dic[time]['price_open'], 0.001) for time in times]
+	max_open_0005 = [utils_features.x_is_within_gap(data_dic[time]['price_high'], data_dic[time]['price_open'], 0.0005) for time in times]
+	max_open_0001 = [utils_features.x_is_within_gap(data_dic[time]['price_high'], data_dic[time]['price_open'], 0.0001) for time in times]
+
+	# Min price is within 1%, 0.1%, 0.05%, 0.01% of close price
+	min_close_01 = [utils_features.x_is_within_gap(data_dic[time]['price_low'], data_dic[time]['price_close'], 0.01) for time in times]
+	min_close_001 = [utils_features.x_is_within_gap(data_dic[time]['price_low'], data_dic[time]['price_close'], 0.001) for time in times]
+	min_close_0005 = [utils_features.x_is_within_gap(data_dic[time]['price_low'], data_dic[time]['price_close'], 0.0005) for time in times]
+	min_close_0001 = [utils_features.x_is_within_gap(data_dic[time]['price_low'], data_dic[time]['price_close'], 0.0001) for time in times]
+
+	# Min price is within 1%, 0.1%, 0.05%, 0.01% of open price
+	min_open_01 = [utils_features.x_is_within_gap(data_dic[time]['price_low'], data_dic[time]['price_open'], 0.01) for time in times]
+	min_open_001 = [utils_features.x_is_within_gap(data_dic[time]['price_low'], data_dic[time]['price_open'], 0.001) for time in times]
+	min_open_0005 = [utils_features.x_is_within_gap(data_dic[time]['price_low'], data_dic[time]['price_open'], 0.0005) for time in times]
+	min_open_0001 = [utils_features.x_is_within_gap(data_dic[time]['price_low'], data_dic[time]['price_open'], 0.0001) for time in times]
+
 
 	# Putting all together
 	data = [
@@ -275,17 +344,51 @@ def make_x(
 		price_ranges_oc_bin3,
 		price_ranges_oc_bin4,
 		price_ranges_oc_bin5,
+		price_ranges_oc_bin1_quant,
+		price_ranges_oc_bin2_quant,
+		price_ranges_oc_bin3_quant,
+		price_ranges_oc_bin4_quant,
+		price_ranges_oc_bin5_quant,
+		price_ranges_oc_bin6_quant,
+		price_ranges_oc_bin7_quant,
+		price_ranges_oc_bin8_quant,
+		price_ranges_oc_bin9_quant,
+		price_ranges_oc_bin10_quant,
 		price_ranges_hl_bin1,
 		price_ranges_hl_bin2,
 		price_ranges_hl_bin3,
 		price_ranges_hl_bin4,
 		price_ranges_hl_bin5,
+		price_ranges_hl_bin1_quant,
+		price_ranges_hl_bin2_quant,
+		price_ranges_hl_bin3_quant,
+		price_ranges_hl_bin4_quant,
+		price_ranges_hl_bin5_quant,
+		price_ranges_hl_bin6_quant,
+		price_ranges_hl_bin7_quant,
+		price_ranges_hl_bin8_quant,
+		price_ranges_hl_bin9_quant,
+		price_ranges_hl_bin10_quant,
 		max_price_is_open,
 		max_price_is_close,
-		# MAX PRICE IS CLOSE TO OPEN OR CLOSE
+		max_close_01,
+		max_close_001,
+		max_close_0005,
+		max_close_0001,
+		max_open_01,
+		max_open_001,
+		max_open_0005,
+		max_open_0001,
 		min_price_is_open,
 		min_price_is_close,
-		# MIN PRICE IS CLOSE TO OPEN OR CLOSE
+		min_close_01,
+		min_close_001,
+		min_close_0005,
+		min_close_0001,
+		min_open_01,
+		min_open_001,
+		min_open_0005,
+		min_open_0001,
 		inc_price,
 		inc_vol,
 		inc_trades,
@@ -295,7 +398,7 @@ def make_x(
 
 	return data
 
-def prediction_from_net(X, model):
+def prediction_from_net(X, model, threshold=None):
 
 	'''
 	Estimate price increase prediction
@@ -305,6 +408,9 @@ def prediction_from_net(X, model):
 
 	with torch.no_grad():
 		pred_logit = model(X).squeeze()
-		pred = torch.round(torch.sigmoid(pred_logit))
+		if threshold:
+			pred = torch.where(torc.sigmoid(pred_logit) > threshold, 1, 0)
+		else:
+			pred = torch.round(torch.sigmoid(pred_logit))
 
 	return pred.item()

@@ -235,3 +235,17 @@ def price_range_hl_increase(data_dic, time):
 		return 1
 	else:
 		return 0
+
+def x_is_within_gap(x, y, gap):
+
+	'''
+	x is within y * (1 +- gap) 
+	'''
+
+	lower = y * (1 - gap)
+	upper = y * (1 + gap)
+	if x > lower and x < upper:
+		return 1
+	else:
+		return 0
+
