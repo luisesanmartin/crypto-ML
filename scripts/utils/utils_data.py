@@ -46,10 +46,10 @@ def standardize(vector, standardizer):
 def standardize_with_path(feature, standardizer_path, for_prediction):
 
 	if for_prediction:
-		with open(standardizers_path, 'rb') as f:
+		with open(standardizer_path, 'rb') as f:
 			standardizer = pickle.load(f)
 	else:
-		standardizer = fit_standardizer(price_close_diffs)
+		standardizer = fit_standardizer(feature)
 		with open(standardizer_path, 'wb') as f:
 			pickle.dump(standardizer, f)
 	

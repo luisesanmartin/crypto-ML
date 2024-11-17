@@ -256,8 +256,11 @@ def feature_diff(data_dic, time, feature):
 	'''
 
 	previous_time = utils_time.past_time(time, 1)
-	current_value = data_dic[time][feature]
-	previous_value = data_dic[previous_time][feature]
+	try:
+		current_value = data_dic[time][feature]
+		previous_value = data_dic[previous_time][feature]
+	except KeyError:
+		return np.nan
 
 	return current_value - previous_value
 
