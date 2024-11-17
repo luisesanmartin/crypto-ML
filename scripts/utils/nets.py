@@ -10,7 +10,7 @@ class net1(nn.Module):
 		else:
 			device = torch.device('cpu')
 
-		self.linear1 = nn.Linear(78, 64)
+		self.linear1 = nn.Linear(85, 64)
 		self.linear2 = nn.Linear(64, 128)
 		self.linear3 = nn.Linear(128, 128)
 		self.linear4 = nn.Linear(128, 64)

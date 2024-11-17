@@ -43,6 +43,18 @@ def standardize(vector, standardizer):
 
 	return result
 
+def standardize_with_path(feature, standardizer_path, for_prediction):
+
+	if for_prediction:
+		with open(standardizers_path, 'rb') as f:
+			standardizer = pickle.load(f)
+	else:
+		standardizer = fit_standardizer(price_close_diffs)
+		with open(standardizer_path, 'wb') as f:
+			pickle.dump(standardizer, f)
+	
+	return standardize(feature, standardizer)
+
 def make_x_predict(data_dic):
 
 	'''
@@ -300,6 +312,45 @@ def make_x(
 	min_open_0005 = [utils_features.x_is_within_gap(data_dic[time]['price_low'], data_dic[time]['price_open'], 0.0005) for time in times]
 	min_open_0001 = [utils_features.x_is_within_gap(data_dic[time]['price_low'], data_dic[time]['price_open'], 0.0001) for time in times]
 
+	# Difference in close price, standardized
+	price_close_diffs = [utils_features.feature_diff(data_dic, time, 'price_close') for time in times]
+	standardizer_path = standardizers_path + 'standardizer_price_close_diff.pkl'
+	price_close_diffs_std = standardize_with_path(price_close_diffs, standardizer_path, for_prediction)
+
+	# Difference in open price, standardized
+	price_open_diffs = [utils_features.feature_diff(data_dic, time, 'price_open') for time in times]
+	standardizer_path = standardizers_path + 'standardizer_price_open_diff.pkl'
+	price_open_diffs_std = standardize_with_path(price_open_diffs, standardizer_path, for_prediction)
+
+	# Difference in max price, standardized
+	price_max_diffs = [utils_features.feature_diff(data_dic, time, 'price_high') for time in times]
+	standardizer_path = standardizers_path + 'standardizer_price_max_diff.pkl'
+	price_max_diffs_std = standardize_with_path(price_max_diffs, standardizer_path, for_prediction)
+
+	# Difference in min price, standardized
+	price_min_diffs = [utils_features.feature_diff(data_dic, time, 'price_low') for time in times]
+	standardizer_path = standardizers_path + 'standardizer_price_min_diff.pkl'
+	price_min_diffs_std = standardize_with_path(price_min_diffs, standardizer_path, for_prediction)
+
+	# Difference in volume, standardized
+	volume_diffs = [utils_features.feature_diff(data_dic, time, 'volume_traded') for time in times]
+	standardizer_path = standardizers_path + 'standardizer_volume_diff.pkl'
+	volume_diffs_std = standardize_with_path(volume_diffs, standardizer_path, for_prediction)
+
+	# Difference in trades, standardized
+	trades_diffs = [utils_features.feature_diff(data_dic, time, 'trades_count') for time in times]
+	standardizer_path = standardizers_path + 'standardizer_trades_diff.pkl'
+	trades_diffs_std = standardize_with_path(trades_diffs, standardizer_path, for_prediction)
+
+	# Avg volume per trade standardized
+	avg_volumes_per_trade = [utils_features.avg_vol_per_trade(data_dic, time) for time in times]
+	standardizer_path = standardizers_path + 'standardizer_avg_volumes_per_trade.pkl'
+	avg_volumes_per_trade_std = standardize_with_path(avg_volumes_per_trade, standardizer_path, for_prediction)
+
+	# Features increased in all last n times
+
+	# Features decreased in all last n times
+
 
 	# Putting all together
 	data = [
@@ -393,6 +444,13 @@ def make_x(
 		inc_trades,
 		inc_price_range_oc,
 		inc_price_range_hl,
+		price_close_diffs_std,
+		price_open_diffs_std,
+		price_max_diffs_std,
+		price_min_diffs_std,
+		volume_diffs_std,
+		trades_diffs_std,
+		avg_volumes_per_trade_std
 	]
 
 	return data

@@ -92,5 +92,12 @@ COLS = [
 	'inc_vol',
 	'inc_trades',
 	'inc_price_range_oc',
-	'inc_price_range_hl'
+	'inc_price_range_hl',
+	'price_close_diffs_std',
+	'price_open_diffs_std',
+	'price_max_diffs_std',
+	'price_min_diffs_std',
+	'volume_diffs_std',
+	'trades_diffs_std',
+	'avg_volumes_per_trade_std'
 ]

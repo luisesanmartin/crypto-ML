@@ -249,3 +249,22 @@ def x_is_within_gap(x, y, gap):
 	else:
 		return 0
 
+def feature_diff(data_dic, time, feature):
+
+	'''
+	Difference in the feature for time with respect of previous time
+	'''
+
+	previous_time = utils_time.past_time(time, 1)
+	current_value = data_dic[time][feature]
+	previous_value = data_dic[previous_time][feature]
+
+	return current_value - previous_value
+
+def avg_vol_per_trade(data_dic, time):
+
+	volume = get_volume(data_dic, time)
+	trades = get_trades(data_dic, time)
+
+	return volume / trades
+
