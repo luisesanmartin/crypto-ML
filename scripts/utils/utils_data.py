@@ -87,7 +87,6 @@ def make_x(
 	times = list(data_dic.keys())
 	if for_prediction: # leave only the most recent time
 		times = times[0:1]
-		print('Estimating predictive features for: {}'.format(times[0]))
 
 	# Price increased in this observation
 	inc_price = [utils_features.price_increased_next(data_dic, time, 0) for time in times]
@@ -408,9 +407,11 @@ def prediction_from_net(X, model, threshold=None):
 
 	with torch.no_grad():
 		pred_logit = model(X).squeeze()
+		score = torch.sigmoid(pred_logit)
+		print('Score predicted: {}'.format(round(score.item(), 2)))
 		if threshold:
-			pred = torch.where(torc.sigmoid(pred_logit) > threshold, 1, 0)
+			pred = torch.where(score > threshold, 1, 0)
 		else:
-			pred = torch.round(torch.sigmoid(pred_logit))
+			pred = torch.round(score)
 
 	return pred.item()
