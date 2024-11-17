@@ -10,12 +10,13 @@ class net1(nn.Module):
 		else:
 			device = torch.device('cpu')
 
-		self.linear1 = nn.Linear(85, 64)
-		self.linear2 = nn.Linear(64, 128)
-		self.linear3 = nn.Linear(128, 128)
-		self.linear4 = nn.Linear(128, 64)
-		self.linear5 = nn.Linear(64, 32)
-		self.linear6 = nn.Linear(32, 1)
+		self.linear1 = nn.Linear(85, 128)
+		self.linear2 = nn.Linear(128, 256)
+		self.linear3 = nn.Linear(256, 256)
+		self.linear4 = nn.Linear(256, 128)
+		self.linear5 = nn.Linear(128, 64)
+		self.linear6 = nn.Linear(64, 32)
+		self.linear7 = nn.Linear(32, 1)
 		self.relu    = nn.ReLU()
 		self.dropout = nn.Dropout(p=0.2)
 
@@ -25,6 +26,7 @@ class net1(nn.Module):
 		x = self.dropout(self.relu(self.linear3(x)))
 		x = self.dropout(self.relu(self.linear4(x)))
 		x = self.dropout(self.relu(self.linear5(x)))
-		x = self.linear6(x)
+		x = self.dropout(self.relu(self.linear6(x)))
+		x = self.linear7(x)
 
 		return x
