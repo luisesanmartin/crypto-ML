@@ -17,14 +17,14 @@ def main():
 	print('Using device: {}'.format(device))
 
 	test_data_file = '../data/working/data_test.csv'
-	model_path = '../models/classifiers/torch-net-valleys-20241111.pkl'
+	model_path = '../models/classifiers/torch-net-valleys-20241118.pkl'
 	if os.path.isfile(model_path):
 		model = torch.load(model_path)
 		print('Using existing model')
 	else:
 		model = nets.net1().float()
 		print('Using new model')
-	optimizer = optim.SGD(params=model.parameters(), lr=0.0005, momentum=0.9)
+	optimizer = optim.SGD(params=model.parameters(), lr=0.001, momentum=0.9)
 	#optimizer = optim.Adam(params=model.parameters(), lr=0.1e-4)
 	dataset = loader.cryptoData()
 	train_data = DataLoader(dataset, batch_size=32, shuffle=True, num_workers=15)

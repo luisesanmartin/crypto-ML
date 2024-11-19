@@ -48,7 +48,6 @@ def is_valley(data_dic, time, both_sides= False, n=objects.VALLEY_PERIODS, gap=o
 				return np.nan
 	
 	current_price = data_dic[time]['price_close']
-	margin_condition = False
 
 	for i in range(1, n + 1):
 
@@ -65,12 +64,10 @@ def is_valley(data_dic, time, both_sides= False, n=objects.VALLEY_PERIODS, gap=o
 		if future_price < current_price:
 			return 0
 		if future_price > current_price * (1 + margin):
-			margin_condition = True
+			return 1
 
-	if margin_condition:
-		return 1
-	else:
-		return 0
+	# if no price was lower or higher enough
+	return 0
 
 def attribute_increased_for_time(data_dic, time, attribute, gap=objects.PERIOD_DATA_MIN):
 
@@ -271,3 +268,18 @@ def avg_vol_per_trade(data_dic, time):
 
 	return volume / trades
 
+def feature_increased_all_n(data_dic, time, n):
+
+	'''
+	Price increased in all periods for the last n periods
+	'''
+
+	return None
+
+def feature_decreased_all_n(data_dic, time, n):
+
+	'''
+	Price decreased in all periods for the last n periods
+	'''
+
+	return None
