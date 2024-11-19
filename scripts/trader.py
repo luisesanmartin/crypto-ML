@@ -12,14 +12,14 @@ import objects
 def main():
 
 	# Loading model
-	model_path = '../models/classifiers/torch-net-valleys-20241111.pkl'
+	model_path = '../models/classifiers/torch-net-valleys-20241118.pkl'
 	model = torch.load(model_path)
 	model.eval()
 	model.to('cpu')
 
 	# Globals and variables
 	market_symbol = 'btcusd'
-	amount = 90
+	amount = 75
 	margin = objects.MARGIN
 	fee_rate = objects.FEE_RATE
 	threshold = objects.PREDICT_THRESHOLD
@@ -32,7 +32,7 @@ def main():
 	correct_predictions = 0
 	predictions = []
 	prices = []
-	periods_to_hold = objects.VALLEY_PERIODS + 60
+	periods_to_hold = objects.VALLEY_PERIODS + 12
 
 	while True:
 
@@ -64,7 +64,11 @@ def main():
 															 price=current_price,
 															 market_symbol=market_symbol)
 					buy_order = buy_order.json()
-					price_buy = float(buy_order['price'])
+					try:
+						price_buy = float(buy_order['price'])
+					except KeyError:
+						print(buy_order)
+						raise KeyError
 					amount_spent = float(crypto_quantity) * price_buy
 					fee = amount_spent * fee_rate
 					profits_total -= fee
