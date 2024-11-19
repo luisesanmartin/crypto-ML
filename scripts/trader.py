@@ -12,27 +12,27 @@ import objects
 def main():
 
 	# Loading model
-	model_path = '../models/classifiers/torch-net-20240623.pkl'
+	model_path = '../models/classifiers/torch-net-valleys-20241118.pkl'
 	model = torch.load(model_path)
 	model.eval()
 	model.to('cpu')
 
 	# Globals and variables
 	market_symbol = 'btcusd'
-	amount = 90
+	amount = 75
 	margin = objects.MARGIN
 	fee_rate = objects.FEE_RATE
-	price_wander_wait = 4 # hours we want to wait after making a sell
-	buy_offer = 0.9995
+	threshold = objects.PREDICT_THRESHOLD
 	
 	# Variables for tracking results
 	hold = 0
 	profits_total = 0
 	periods = 0
+	periods_holding = 0
 	correct_predictions = 0
 	predictions = []
 	prices = []
-	sell = False
+	periods_to_hold = objects.VALLEY_PERIODS + 12
 
 	while True:
 
@@ -40,7 +40,6 @@ def main():
 		if (minutes + 1) % 10 == 0 and seconds >= 59: # 9m, 59s
 			time_now = time_utils.time_in_string(datetime.now())
 			print('\nIts {}'.format(time_now))
-			print('Starting now...')
 			
 			# Data
 			data = fetch_utils.get_data_min()
@@ -51,7 +50,7 @@ def main():
 			print('Current price (API): {}'.format(current_price))
 
 			# Prediction
-			prediction = data_utils.prediction_from_net(X, model)
+			prediction = data_utils.prediction_from_net(X, model, threshold=threshold)
 			predictions.append(prediction)
 
 			# Trader in action
@@ -59,74 +58,66 @@ def main():
 				print('Currently not holding...')
 				
 				if prediction == 1:
-					#price_buy = round(current_price * buy_offer)
-					#crypto_quantity = round(amount / price_buy, 8)
+					print('Valley detected!')
 					crypto_quantity = round(amount / current_price, 8)
 					buy_order = trading_utils.bs_buy_limit_order(amount=crypto_quantity,
-															 #price=price_buy,
 															 price=current_price,
 															 market_symbol=market_symbol)
 					buy_order = buy_order.json()
-					price_buy = float(buy_order['price'])
+					try:
+						price_buy = float(buy_order['price'])
+					except KeyError:
+						print(buy_order)
+						raise KeyError
 					amount_spent = float(crypto_quantity) * price_buy
 					fee = amount_spent * fee_rate
 					profits_total -= fee
 					print('Sent a limit order to buy '+str(crypto_quantity)+' for $'+str(round(amount_spent, 2)))
 					print('Purchase price: {}'.format(price_buy))
 					hold = 1
+					periods_holding = 0
 				else:
-					print('Price is predicted to decrease, not buying')
+					print('No valley detected, not buying')
 					pass
 			
 			elif hold == 1:
+				periods_holding += 1
 				print('Currently holding crypto...')
 
-				# We only sell if price is predicted to decrease (prediction == 0)
-				# and current price is higher than the last buy price by the amount in "margin"
-				if prediction == 0:
-					if current_price > price_buy * (1 + margin):
-						sell_order = trading_utils.bs_sell_limit_order(amount=crypto_quantity,
-																	price=current_price,
-																	market_symbol=market_symbol)
-						sell_order = sell_order.json()
-						try:
-							amount_sold = float(crypto_quantity) * float(sell_order['price'])
-						except KeyError:
-							print(sell_order)
-							raise KeyError
-						fee = amount_sold * fee_rate
-						profits_total -= fee
-						profits = amount_sold - amount_spent
-						profits_total += profits
-						amount = amount_sold
-						print('Sent a limit order to sell '+str(crypto_quantity)+' for $'+str(round(amount_sold, 2)))
-						print('Sell price: {}'.format(sell_order['price']))
-						print('Profits with this operation: $'+str(round(profits, 2)))
-						#print('Total profits: $'+str(round(profits_total, 2)))
-						hold = 0
-						sell = True
-					else:
-						print("Price is predicted to decrease but it's not higher than the desired margin")
-						print('Last purchase price: ${}'.format(price_buy))
+				# We only sell if current price is higher than the
+				# last buy price by the amount in "margin"
+				price_with_margin = price_buy * (1 + margin) 
+				if current_price > price_with_margin or periods_holding >= periods_to_hold:
+					sell_order = trading_utils.bs_sell_limit_order(amount=crypto_quantity,
+																price=current_price,
+																market_symbol=market_symbol)
+					sell_order = sell_order.json()
+					try:
+						amount_sold = float(crypto_quantity) * float(sell_order['price'])
+					except KeyError:
+						print(sell_order)
+						raise KeyError
+					fee = amount_sold * fee_rate
+					profits_total -= fee
+					profits = amount_sold - amount_spent
+					profits_total += profits
+					amount = amount_sold
+					if not current_price > price_buy * (1 + margin):
+						print("Selling because we've reached the valley periods...")
+					print('Sent a limit order to sell '+str(crypto_quantity)+' for $'+str(round(amount_sold, 2)))
+					print('Sell price: {}'.format(sell_order['price']))
+					print('Profits with this operation: $'+str(round(profits, 2)))
+					hold = 0
 				else:
-					print('Price is predicted to increase, not selling')
-					pass
+					print("Price is not yet higher than the desired margin")
+					print('Last purchase price: ${}'.format(price_buy))
+					print('Price with margin: ${}'.format(round(price_with_margin)))
 
 			# Accuracy tracking:
 			periods += 1
 			print('Total periods: {}'.format(periods))
-			if periods > 1:
-				last_prediction = predictions[-2]
-				true_movement = int(prices[-1] > prices[-2])
-				if last_prediction == true_movement:
-					correct_predictions += 1
-				print('Accuracy: {}%'.format(round(correct_predictions/(periods-1)*100)))
 			print('Total profits: $'+str(round(profits_total, 2)))
-			if sell:
-				time.sleep(60*60*price_wander_wait) # let the price wander for a few hours
-				sell = False
-			else:
-				time.sleep(550)
+			time.sleep(550)
 
 		time.sleep(0.5)
 

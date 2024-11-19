@@ -1,6 +1,7 @@
 import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
+import os.path
 import sys
 sys.path.insert(1, './utils')
 import nets
@@ -16,16 +17,18 @@ def main():
 	print('Using device: {}'.format(device))
 
 	test_data_file = '../data/working/data_test.csv'
-	model_path = '../models/classifiers/torch-net-valleys-20241110.pkl'
-	model = nets.net1().float()
-	#model = torch.load(model_path)
-	#optimizer = optim.Adam(params=model.parameters(), lr=1e-2)
-	#optimizer = optim.Adam(params=model.parameters(), lr=1e-3)
-	optimizer = optim.SGD(params=model.parameters(), lr=1e-3, momentum=0.9)
-	#optimizer = optim.Adam(params=model.parameters(), lr=0.0001)
+	model_path = '../models/classifiers/torch-net-valleys-20241118.pkl'
+	if os.path.isfile(model_path):
+		model = torch.load(model_path)
+		print('Using existing model')
+	else:
+		model = nets.net1().float()
+		print('Using new model')
+	optimizer = optim.SGD(params=model.parameters(), lr=0.001, momentum=0.9)
+	#optimizer = optim.Adam(params=model.parameters(), lr=0.1e-4)
 	dataset = loader.cryptoData()
 	train_data = DataLoader(dataset, batch_size=32, shuffle=True, num_workers=15)
-	epochs = 50000
+	epochs = 100000
 	#loss_file = '../data/results/loss_torch-net-20241108.csv'
 
 	# Training
