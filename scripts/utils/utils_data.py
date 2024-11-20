@@ -88,11 +88,28 @@ def make_data_train_test(data_dic, cols=objects.COLS):
 
 	return df_train, df_test
 
+def make_data_validation(data_dic, cols=objects.COLS):
+
+	# Time and targets
+	times = list(data_dic.keys())
+	valleys = [utils_features.is_valley(data_dic, time) for time in times]
+
+	# All other variables
+	data = make_x(data_dic, for_prediction=False, for_validation=True)
+	data = [times, valleys] + data
+	df = pd.DataFrame(dict(zip(cols, data)))
+
+	# Removing obs with nan
+	df = df.dropna(how='any')
+
+	return df
+
 def make_x(
 	data_dic,
 	standardizers_path='../models/standardizers/',
 	binners_path = '../models/binners/',
-	for_prediction=True
+	for_prediction=True,
+	for_validation=True
 	):
 
 	# ID variable: end time of period
@@ -105,7 +122,7 @@ def make_x(
 
 	# Standardized close price
 	close_prices = [data_dic[time]['price_close'] for time in times]
-	if for_prediction:
+	if for_prediction or for_validation:
 		with open(standardizers_path+'standardizer_prices.pkl', 'rb') as f:
 			standardizer = pickle.load(f)
 	else:
@@ -127,7 +144,7 @@ def make_x(
 
 	# Standardized volume traded
 	volumes = [data_dic[time]['volume_traded'] for time in times]
-	if for_prediction:
+	if for_prediction or for_validation:
 		with open(standardizers_path+'standardizer_volumes.pkl', 'rb') as f:
 			standardizer = pickle.load(f)
 	else:
@@ -149,7 +166,7 @@ def make_x(
 
 	# Standardized N of trades
 	trades = [data_dic[time]['trades_count'] for time in times]
-	if for_prediction:
+	if for_prediction or for_validation:
 		with open(standardizers_path+'standardizer_trades.pkl', 'rb') as f:
 			standardizer = pickle.load(f)
 	else:
@@ -169,7 +186,7 @@ def make_x(
 	# Standardized price ranges (open-close)
 	price_ranges_oc = [utils_features.price_range_oc(data_dic, time) for time in times]
 	standardizer_path = standardizers_path + 'standardizer_price_ranges_oc.pkl'
-	if for_prediction:
+	if for_prediction or for_validation:
 		with open(standardizer_path, 'rb') as f:
 			standardizer = pickle.load(f)
 	else:
@@ -181,7 +198,7 @@ def make_x(
 	# Standardized price ranges (high-low)
 	price_ranges_hl = [utils_features.price_range_hl(data_dic, time) for time in times]
 	standardizer_path = standardizers_path + 'standardizer_price_ranges_hl.pkl'
-	if for_prediction:
+	if for_prediction or for_validation:
 		with open(standardizer_path, 'rb') as f:
 			standardizer = pickle.load(f)
 	else:
@@ -193,7 +210,7 @@ def make_x(
 	# Price range bins (OC)
 	price_ranges_oc_np = np.array(price_ranges_oc).reshape(-1, 1)
 	binner_path = binners_path + 'standardizer_price_range_bins_oc.pkl'
-	if for_prediction:
+	if for_prediction or for_validation:
 		with open(binner_path, 'rb') as f:
 			binner = pickle.load(f)
 	else:
@@ -210,7 +227,7 @@ def make_x(
 
 	# Price range bins (OC) quantiles
 	binner_path = binners_path + 'standardizer_price_range_bins_oc_quantiles.pkl'
-	if for_prediction:
+	if for_prediction or for_validation:
 		with open(binner_path, 'rb') as f:
 			binner = pickle.load(f)
 	else:
@@ -233,7 +250,7 @@ def make_x(
 	# Price range bins (HL)
 	price_ranges_hl_np = np.array(price_ranges_hl).reshape(-1, 1)
 	binner_path = binners_path + 'standardizer_price_range_bins_hl.pkl'
-	if for_prediction:
+	if for_prediction or for_validation:
 		with open(binner_path, 'rb') as f:
 			binner = pickle.load(f)
 	else:
@@ -250,7 +267,7 @@ def make_x(
 
 	# Price range bins (HL) quantiles
 	binner_path = binners_path + 'standardizer_price_range_bins_hl_quantiles.pkl'
-	if for_prediction:
+	if for_prediction or for_validation:
 		with open(binner_path, 'rb') as f:
 			binner = pickle.load(f)
 	else:
