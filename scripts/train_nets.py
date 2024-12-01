@@ -17,6 +17,7 @@ def main():
 	print('Using device: {}'.format(device))
 
 	test_data_file = '../data/working/data_test.csv'
+	test_data_file2 = '../data/working/data_validation.csv'
 	model_path = '../models/classifiers/torch-net-valleys-20241118.pkl'
 	if os.path.isfile(model_path):
 		model = torch.load(model_path)
@@ -41,7 +42,8 @@ def main():
 			epoch=epoch,
 			net_file = model_path,
 			#loss_file=loss_file,
-			test_data_file=test_data_file
+			test_data_file=test_data_file,
+			test_data_file2=test_data_file2
 			)
 
 if __name__ == '__main__':
