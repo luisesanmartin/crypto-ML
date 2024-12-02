@@ -10,6 +10,10 @@ VALLEY_PERIODS = 18 # this times 10 minutes divided by 60 is the number of hours
 POS_WEIGHTS = (79351-6040)/6040 # neg samples / pos samples
 TEST_SIZE = 0.2
 PREDICT_THRESHOLD = 0.7
+PERIODS = [5, 8, 10, 12, 14, 16, 18, 20]
+BUY_RATES = [.005, .008, .01, .012, .015, .02]
+SELL_RATES = [.008, .01, .012, .015, .02]
+CUT_LOSS_RATES = [.01, .012, .015, .0175, .02, .025, .03, .04, .05, .06, .07, .08]
 
 # Columns in working df
 COLS = [

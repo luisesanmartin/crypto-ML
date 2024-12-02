@@ -3,6 +3,27 @@ import objects
 import numpy as np
 from sklearn import preprocessing
 
+def avg_price(data_dic, periods, time):
+
+	'''
+	estimates the avg price (close) for time over the last X periods
+	'''
+
+	summation = 0
+	n = 0
+
+	for i in range(0, periods):
+
+		past_time = utils_time.past_time(time, i)
+		try:
+			past_price = data_dic[past_time]['price_close']
+			summation += past_price
+			n += 1
+		except KeyError:
+			continue
+
+	return summation / n
+
 def price_increased(data_dic, time):
 
 	'''
