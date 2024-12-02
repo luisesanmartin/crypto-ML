@@ -4,7 +4,7 @@ PERIOD_DATA = '10MIN'
 PERIOD_DATA_MIN = 10
 TIME_FMT = '%Y-%m-%dT%H:%M:%S'
 DATA_MAX = 100000
-MARGIN = 0.008 # 0.4% is the fee for buying and selling in BS
+MARGIN = 0.01
 FEE_RATE = 0.004
 VALLEY_PERIODS = 18 # this times 10 minutes divided by 60 is the number of hours
 POS_WEIGHTS = (79351-6040)/6040 # neg samples / pos samples
@@ -14,6 +14,9 @@ PERIODS = [5, 8, 10, 12, 14, 16, 18, 20]
 BUY_RATES = [.005, .008, .01, .012, .015, .02]
 SELL_RATES = [.008, .01, .012, .015, .02]
 CUT_LOSS_RATES = [.01, .012, .015, .0175, .02, .025, .03, .04, .05, .06, .07, .08]
+BUY_RATE = 0.012
+CUT_LOSS_RATE = 0.07
+PERIOD = 14
 
 # Columns in working df
 COLS = [
