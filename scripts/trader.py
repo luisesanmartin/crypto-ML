@@ -42,13 +42,15 @@ def main():
 
 		minutes, seconds = time_utils.minute_seconds_now()
 
-		data = fetch_utils.get_data_min()
 		if (minutes + 1) % 10 == 0 and seconds >= 59: # 9m, 59s
 			time_now = time_utils.time_in_string(datetime.now())
 			print('\nIts {}'.format(time_now))
 			
 			# Data
-			data = fetch_utils.get_data_min()
+			try:
+				data = fetch_utils.get_data_min()
+			except TypeError:
+				continue
 			data_dic = data_utils.make_data_dic(data)
 			#X = data_utils.make_x_predict(data_dic)
 			current_price = data[0]['price_close']
