@@ -14,7 +14,7 @@ def main():
 
 	# Globals and variables
 	market_symbol = 'btcusd'
-	amount = 600
+	amount = 100
 	#margin = objects.MARGIN # same as sell rate in simulation
 	fee_rate = objects.FEE_RATE
 	buy_rate = objects.BUY_RATE
@@ -36,21 +36,22 @@ def main():
 			
 			# Data
 			try:
-				data = fetch_utils.get_data_min()
+				#data = fetch_utils.get_data_min()
+				data = fetch_utils.get_data_bitstamp()
 			except TypeError:
 				continue
-			data_dic = data_utils.make_data_dic(data)
-			#X = data_utils.make_x_predict(data_dic)
-			current_price = data[0]['price_close']
+			#current_price = data[0]['price_close']
+			current_price = int(data[-1]['close'])
 			print('Current price (API): {}'.format(current_price))
 
 			# Trader in action
 			if hold == 0:
 				print('Currently not holding...')
 
-				current_time = data[0]['time_period_end'].split('.')[0]
-				avg_price = utils_features.avg_price(data_dic, periods, current_time)
-				print('Valley price: {}'.format(round(avg_price * (1-buy_rate), 0)))
+				#current_time = data[0]['time_period_end'].split('.')[0]
+				#avg_price = utils_features.avg_price(data_dic, periods, current_time)
+				avg_price = utils_features.avg_price_bistamp(data)
+				print('Valley price: {}'.format(round(avg_price * (1-buy_rate))))
 
 				if float(current_price) < avg_price * (1-buy_rate):
 
