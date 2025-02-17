@@ -2,12 +2,12 @@ import sys
 sys.path.insert(1, './utils')
 import utils_time as time_utils
 import utils_fetch as fetch_utils
-import utils_data as data_utils
+#import utils_data as data_utils
 import utils_trade as trading_utils
 import utils_features
 from datetime import datetime
 import time
-import torch
+#import torch
 import objects
 
 def main():
