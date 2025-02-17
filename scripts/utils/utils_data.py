@@ -24,6 +24,7 @@ def make_data_dic(data):
     	except TypeError:
     		print("data_point:")
     		print(data_point)
+    		print(type(data_point))
     		raise TypeError
     	data_dic[key] = data_point
 
