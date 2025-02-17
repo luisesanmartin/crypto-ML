@@ -14,8 +14,8 @@ def main():
 
 	# Globals and variables
 	market_symbol = 'btcusd'
-	amount = 500
-	margin = objects.MARGIN # same as sell rate in simulation
+	amount = 600
+	#margin = objects.MARGIN # same as sell rate in simulation
 	fee_rate = objects.FEE_RATE
 	buy_rate = objects.BUY_RATE
 	cut_loss_rate = objects.CUT_LOSS_RATE
@@ -80,7 +80,7 @@ def main():
 
 				# We only sell if current price is higher than the
 				# last buy price by the amount in "margin"
-				price_with_margin = price_buy * (1 + margin) 
+				price_with_margin = price_buy * (1 + buy_rate) 
 				
 				if current_price > price_buy * (1+buy_rate) or \
 		   		   current_price < price_buy * (1-cut_loss_rate):
