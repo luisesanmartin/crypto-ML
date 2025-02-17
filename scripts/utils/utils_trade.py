@@ -9,6 +9,8 @@ import uuid
 import sys
 from urllib.parse import urlencode
 import objects
+from email.message import EmailMessage
+import smtplib
 
 def bs_credentials():
 
@@ -21,8 +23,43 @@ def bs_credentials():
     api_key = login_info['key']
     secret = login_info['secret']
 
-
     return api_key, secret
+
+def email_credentials():
+
+    '''
+    '''
+
+    with open('API/email-credentials.json') as f:
+        email = json.load(f)
+
+    sender = email['sender']
+    to = email['to']
+    key = email['password']
+
+    return sender, to, key
+
+def send_email(message, subject, sender, to, key):
+
+    '''
+    '''
+
+    # Message content
+    msg = EmailMessage()
+    msg['Subject'] = subject
+    msg['From'] = sender
+    msg['To'] = to
+    msg.set_content(message)
+
+    # Credendials and sending
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    server.ehlo()
+    server.starttls()
+    server.login(sender, key)
+    server.send_message(msg)
+    server.quit()
+
+    return True
 
 def bs_sell_limit_order(amount, price, market_symbol, credentials=bs_credentials()):
 
