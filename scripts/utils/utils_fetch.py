@@ -9,6 +9,23 @@ def get_api_key(text='API/key.txt'):
 
     return key
 
+def get_data_bitstamp(
+    step = 300, # five minutes
+    crypto_symbol=objects.SYMBOL_ID_BITSTAMP,
+    limit = objects.PERIOD*2):
+
+    '''
+    gets OLHC data from Bitstamp
+    '''
+
+    request_url = objects.URL_BITSTAMP.format(crypto_symbol)
+    parameters = {'step': step, 'limit': limit}
+
+    response = requests.get(request_url, params=parameters)
+    data = json.loads(response.text)['data']['ohlc']
+
+    return data
+
 def get_data_min(period=objects.PERIOD_DATA, crypto_symbol=objects.SYMBOL_ID):
 
     '''

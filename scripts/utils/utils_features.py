@@ -3,6 +3,23 @@ import objects
 import numpy as np
 from sklearn import preprocessing
 
+def avg_price_bistamp(data):
+
+	'''
+	Returns the average of close prices in data.
+	This assumes each item in data is an interval of five min but the avg
+		needed is for 10 min intervals (hence it drops the close price
+		of 1 every 2 observations).
+	'''
+
+	close_prices = []
+	for i, data_point in enumerate(data):
+
+		if i % 2 == 1:
+			close_prices.append(int(data_point['close']))
+
+	return np.array(close_prices).mean()
+
 def avg_price(data_dic, periods, time):
 
 	'''

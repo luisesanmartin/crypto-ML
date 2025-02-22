@@ -1,5 +1,7 @@
 SYMBOL_ID = 'BITSTAMP_SPOT_BTC_USD'
+SYMBOL_ID_BITSTAMP = 'btcusd'
 URL = 'https://rest.coinapi.io/v1/ohlcv/{}/history'
+URL_BITSTAMP = 'https://www.bitstamp.net/api/v2/ohlc/{}/'
 PERIOD_DATA = '10MIN'
 PERIOD_DATA_MIN = 10
 TIME_FMT = '%Y-%m-%dT%H:%M:%S'
