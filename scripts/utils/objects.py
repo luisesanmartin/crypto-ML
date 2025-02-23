@@ -20,6 +20,29 @@ BUY_RATE = 0.012
 CUT_LOSS_RATE = 0.07
 PERIOD = 14
 
+BITSTAMP_SYMBOLS = [
+	'btcusd',
+	'ethusd',
+	'xrpusd',
+	'solusd',
+	'ltcusd',
+	'aaveusd',
+	'xlmusd',
+	'suiusd',
+	'dogeusd',
+	'hbarusd',
+	'adausd',
+	'linkusd',
+	'avaxusd',
+	'xdcusd',
+	'shibusd',
+	'dotusd',
+	'maticusd',
+	'uniusd',
+	'ftmusd',
+	'pepeusd'
+	]
+
 # Columns in working df
 COLS = [
 	'time',				# Obs ID
