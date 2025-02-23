@@ -1,6 +1,27 @@
 import objects
 from datetime import datetime, timedelta
 
+def epoch_in_datetime(epoch):
+
+	'''
+	Transforms a time in epoch to a date string
+	'''
+
+	return datetime.fromtimestamp(int(epoch)).strftime(objects.TIME_FMT)
+
+def time_in_epoch(time):
+
+	'''
+	Reads a time in format '%Y-%m-%d' and returns its epoch
+	'''
+	
+	year, month, day = time.split('-')
+	year = int(year)
+	month = int(month)
+	day = int(day)
+
+	return int(datetime(year, month, day).timestamp())
+
 def time_in_datetime(time):
 
     '''
