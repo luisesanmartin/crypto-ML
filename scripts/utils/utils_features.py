@@ -3,6 +3,19 @@ import objects
 import numpy as np
 from sklearn import preprocessing
 
+def avg_price_symbol_periods(data_dic, symbol, periods, time, gap_epoch=objects.GAP_EPOCH):
+
+	'''
+	'''
+
+	prices = []
+	for i in range(1, periods+1):
+
+		time_iteration = time - (gap_epoch * i)
+		prices.append(float(data_dic[time_iteration][symbol]['close']))
+
+	return np.array(prices).mean()
+
 def avg_price_bistamp(data):
 
 	'''
@@ -16,7 +29,7 @@ def avg_price_bistamp(data):
 	for i, data_point in enumerate(data):
 
 		if i % 2 == 1:
-			close_prices.append(int(data_point['close']))
+			close_prices.append(float(data_point['close']))
 
 	return np.array(close_prices).mean()
 

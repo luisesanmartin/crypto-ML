@@ -7,6 +7,32 @@ import numpy as np
 import pickle
 import torch
 import pandas as pd
+import objects
+
+def open_pickle(file):
+
+	with open(file, 'rb') as f:
+		data = pickle.load(f)
+
+	return data
+
+def make_data_dic_bitstamp(data):
+
+    '''
+    Transforms the JSON datasets to a dictionary
+    with period as key and symbol as second-level key
+    '''
+
+    times = [obs['timestamp'] for obs in data[objects.SYMBOL_ID_BITSTAMP]]
+    symbols = objects.BITSTAMP_SYMBOLS
+
+    data_dic = {}
+
+    for i, time in enumerate(times):
+
+    	data_dic[int(time)] = {symbol: data[symbol][i] for symbol in symbols if time == data[symbol][i]['timestamp']}
+
+    return data_dic
 
 def make_data_dic(data):
 
