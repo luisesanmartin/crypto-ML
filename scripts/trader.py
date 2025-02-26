@@ -2,12 +2,10 @@ import sys
 sys.path.insert(1, './utils')
 import utils_time as time_utils
 import utils_fetch as fetch_utils
-#import utils_data as data_utils
 import utils_trade as trading_utils
 import utils_features
 from datetime import datetime
 import time
-#import torch
 import objects
 
 def main():
@@ -17,6 +15,7 @@ def main():
 	amount = 100
 	fee_rate = objects.FEE_RATE
 	buy_rate = objects.BUY_RATE
+	sell_rate = objects.SELL_RATE
 	cut_loss_rate = objects.CUT_LOSS_RATE
 	periods = objects.PERIOD
 	
@@ -91,9 +90,9 @@ def main():
 
 				# We only sell if current price is higher than the
 				# last buy price by the amount in "margin"
-				price_with_margin = price_buy * (1 + buy_rate) 
+				price_with_margin = price_buy * (1 + sell_rate) 
 				
-				if current_price > price_buy * (1+buy_rate) or \
+				if current_price > price_buy * (1+sell_rate) or \
 		   		   current_price < price_buy * (1-cut_loss_rate):
 
 					sell_order = trading_utils.bs_sell_limit_order(amount=crypto_quantity,
