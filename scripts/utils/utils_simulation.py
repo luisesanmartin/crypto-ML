@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 import sys
 sys.path.insert(1, './utils')
 import utils_features
@@ -87,6 +88,7 @@ def simulate_one_symbols(
 def simulate_all_symbols(
 	data_dic,
 	results_file,
+	detailed_results_path,
 	amount_to_trade,
 	symbols = objects.BITSTAMP_SYMBOLS,
 	periods=objects.PERIODS,
@@ -104,12 +106,34 @@ def simulate_all_symbols(
 	times = list(data_dic.keys())
 	times.sort()
 	results = []
+	cols = [
+		'Periods', 
+		'Buy rate', 
+		'Sell rate', 
+		'Cut loss rate', 
+		'Amount used', 
+		'Final amount',
+		'Number of trades with profit',
+		'Number of trades with loss',
+		'Number of trades',
+		'Total fees', 
+		'Profits',
+		'Return rate']
+	cols2 = [
+		'Time',
+		'Amount',
+		'Total fees',
+		'N trades-profit',
+		'N trades-loss',
+		'N trades',
+		'Symbol holding']
 
 	for period in periods:
 		for buy_rate in buy_rates:
 			for sell_rate in sell_rates:
 				for cut_loss_rate in cut_loss_rates:
 
+					results_combination = []
 					hold = False
 					amount = amount_to_trade
 					crypto = 0
@@ -122,6 +146,7 @@ def simulate_all_symbols(
 
 					for time in times[period:]:
 
+						results_combination.append([time, amount, total_fees, n_trades_profit, n_trades_loss, n_trades, symbol_holding])
 						hold, crypto, amount, total_fees, last_purchase_price, symbol_holding, n_trades_profit, n_trades_loss, n_trades = \
 							simulate_one_symbols(
 								data_dic,
@@ -140,6 +165,10 @@ def simulate_all_symbols(
 								cut_loss_rate,
 								symbol_holding)
 
+					df = pd.DataFrame(columns=cols2, data=results_combination)
+					results_file = f'{detailed_results_path}/period{period}-buy_rate{buy_rate}-sell_rate{sell_rate}-cut_loss_rate{cut_loss_rate}.csv'
+					df.to_csv(results_file, index=None)
+					
 					# Estimating finals
 					if hold: # then we sell
 						current_price = float(data_dic[time][symbol_holding]['close'])
@@ -179,19 +208,6 @@ def simulate_all_symbols(
 						profits,
 						return_rate])
 
-	cols = [
-		'Periods', 
-		'Buy rate', 
-		'Sell rate', 
-		'Cut loss rate', 
-		'Amount used', 
-		'Final amount',
-		'Number of trades with profit',
-		'Number of trades with loss',
-		'Number of trades',
-		'Total fees', 
-		'Profits',
-		'Return rate']
 	df = pd.DataFrame(columns=cols, data=results)
 	df.to_csv(results_file, index=None)
 

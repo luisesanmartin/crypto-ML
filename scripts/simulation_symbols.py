@@ -14,9 +14,13 @@ data_dic = utils_data.make_data_dic_bitstamp(all_data)
 def simulate(period):
 
 	results_file = f'../data/results/simulations-manual-rules-symbols-period{period}.csv'
+	results_path = f'../data/results/period{period}'
+	if not os.path.exists(results_path):
+		os.makedirs(results_path)
 	utils_simulation.simulate_all_symbols(
 		data_dic = data_dic,
 		results_file = results_file,
+		detailed_results_path = results_path,
 		amount_to_trade = 1000,
 		periods = [period]
 	)
