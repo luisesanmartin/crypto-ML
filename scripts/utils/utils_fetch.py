@@ -2,6 +2,8 @@ import objects
 import json
 import requests
 import utils_time
+import utils_data
+import utils_features
 
 def get_api_key(text='API/key.txt'):
 
@@ -34,6 +36,26 @@ def get_data_bitstamp_from_to(
         time += step * limit
 
     return result
+
+def get_data_bitstamp_symbols_now(
+    step = objects.GAP_EPOCH,
+    symbols = objects.BITSTAMP_SYMBOLS,
+    limit = objects.PERIOD+1
+    ):
+
+    '''
+    Return a dictionary with the current prices and average prices
+    for the last limit-1 periods for all symbols
+    '''
+
+    all_data = {symbol: get_data_bitstamp(step=step, crypto_symbol=symbol, limit=limit) for symbol in symbols}
+    data_dic = utils_data.make_data_dic_bitstamp(all_data)
+    time = list(data_dic.keys())[-1]
+
+    current_prices = {symbol: float(data_dic[time][symbol]['close']) for symbol in symbols}
+    avg_prices = {symbol: utils_features.avg_price_symbol_periods(data_dic, symbol, limit-1, time) for symbol in symbols}
+
+    return current_prices, avg_prices
 
 def get_data_bitstamp(
     step = 300, # five minutes
