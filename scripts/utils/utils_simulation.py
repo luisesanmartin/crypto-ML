@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 import sys
 sys.path.insert(1, './utils')
 import utils_features
@@ -11,6 +12,8 @@ def simulate_one_symbols(
 	amount,
 	crypto,
 	total_fees,
+	n_trades_profit,
+	n_trades_loss,
 	n_trades,
 	last_purchase_price,
 	periods,
@@ -32,18 +35,33 @@ def simulate_one_symbols(
 			current_price = current_prices[symbol]
 			avg_price = avg_prices[symbol]
 
-			if current_price < avg_price * (1+buy_rate):
+			if buy_rate < 0:
+				
+				if current_price < avg_price * (1+buy_rate):
 
-				hold = True
-				crypto = amount / current_price
-				fee = amount * objects.FEE_RATE
-				amount = 0			
-				total_fees += fee
-				last_purchase_price = current_price
-				symbol_holding = symbol
-				n_trades += 1
+					hold = True
+					crypto = amount / current_price
+					fee = amount * objects.FEE_RATE
+					amount = 0			
+					total_fees += fee
+					last_purchase_price = current_price
+					symbol_holding = symbol
 
-				return hold, crypto, amount, total_fees, last_purchase_price, symbol_holding, n_trades
+					return hold, crypto, amount, total_fees, last_purchase_price, symbol_holding, n_trades_profit, n_trades_loss, n_trades
+
+			else: # buy_rate > 0
+
+				if current_price > avg_price * (1+buy_rate):
+
+					hold = True
+					crypto = amount / current_price
+					fee = amount * objects.FEE_RATE
+					amount = 0			
+					total_fees += fee
+					last_purchase_price = current_price
+					symbol_holding = symbol
+
+					return hold, crypto, amount, total_fees, last_purchase_price, symbol_holding, n_trades_profit, n_trades_loss, n_trades
 
 	elif hold:
 
@@ -52,18 +70,25 @@ def simulate_one_symbols(
 		if current_price > last_purchase_price * (1+sell_rate) or \
 		   current_price < last_purchase_price * (1-cut_loss_rate):
 
-		   hold = False
-		   amount = crypto * current_price
-		   fee = amount * objects.FEE_RATE
-		   crypto = 0
-		   total_fees += fee
-		   symbol_holding = None
+			hold = False
+			amount = crypto * current_price
+			fee = amount * objects.FEE_RATE
+			crypto = 0
+			total_fees += fee
+			symbol_holding = None
+			n_trades += 1
 
-	return hold, crypto, amount, total_fees, last_purchase_price, symbol_holding, n_trades
+			if current_price > last_purchase_price * (1+sell_rate):
+				n_trades_profit += 1
+			elif current_price < last_purchase_price * (1-cut_loss_rate):
+				n_trades_loss += 1
+
+	return hold, crypto, amount, total_fees, last_purchase_price, symbol_holding, n_trades_profit, n_trades_loss, n_trades
 
 def simulate_all_symbols(
 	data_dic,
 	results_file,
+	detailed_results_path,
 	amount_to_trade,
 	symbols = objects.BITSTAMP_SYMBOLS,
 	periods=objects.PERIODS,
@@ -81,23 +106,48 @@ def simulate_all_symbols(
 	times = list(data_dic.keys())
 	times.sort()
 	results = []
+	cols = [
+		'Periods', 
+		'Buy rate', 
+		'Sell rate', 
+		'Cut loss rate', 
+		'Amount used', 
+		'Final amount',
+		'Number of trades with profit',
+		'Number of trades with loss',
+		'Number of trades',
+		'Total fees', 
+		'Profits',
+		'Return rate']
+	cols2 = [
+		'Time',
+		'Amount',
+		'Total fees',
+		'N trades-profit',
+		'N trades-loss',
+		'N trades',
+		'Symbol holding']
 
 	for period in periods:
 		for buy_rate in buy_rates:
 			for sell_rate in sell_rates:
 				for cut_loss_rate in cut_loss_rates:
 
+					results_combination = []
 					hold = False
 					amount = amount_to_trade
 					crypto = 0
 					total_fees = 0
+					n_trades_profit = 0
+					n_trades_loss = 0
 					n_trades = 0
 					last_purchase_price = None
 					symbol_holding = None
 
 					for time in times[period:]:
 
-						hold, crypto, amount, total_fees, last_purchase_price, symbol_holding, n_trades = \
+						results_combination.append([time, amount, total_fees, n_trades_profit, n_trades_loss, n_trades, symbol_holding])
+						hold, crypto, amount, total_fees, last_purchase_price, symbol_holding, n_trades_profit, n_trades_loss, n_trades = \
 							simulate_one_symbols(
 								data_dic,
 								time,
@@ -105,6 +155,8 @@ def simulate_all_symbols(
 								amount,
 								crypto,
 								total_fees,
+								n_trades_profit,
+								n_trades_loss,
 								n_trades,
 								last_purchase_price,
 								period,
@@ -113,6 +165,10 @@ def simulate_all_symbols(
 								cut_loss_rate,
 								symbol_holding)
 
+					df = pd.DataFrame(columns=cols2, data=results_combination)
+					results_file = f'{detailed_results_path}/period{period}-buy_rate{buy_rate}-sell_rate{sell_rate}-cut_loss_rate{cut_loss_rate}.csv'
+					df.to_csv(results_file, index=None)
+					
 					# Estimating finals
 					if hold: # then we sell
 						current_price = float(data_dic[time][symbol_holding]['close'])
@@ -126,14 +182,16 @@ def simulate_all_symbols(
 					amount = round(amount, 2)
 					total_fees = round(total_fees, 2)
 
-					print('Periods      : {}'.format(period))
-					print('Buy rate     : {}'.format(buy_rate))
-					print('Sell rate    : {}'.format(sell_rate))
-					print('Cut loss rate: {}'.format(cut_loss_rate))
-					print('Amount used  : {}'.format(amount_to_trade+total_fees))
-					print('Final amount : {}'.format(amount))
-					print('N trades     : {}'.format(n_trades))
-					print('Total fees   : {}'.format(total_fees))
+					print('Periods        : {}'.format(period))
+					print('Buy rate       : {}'.format(buy_rate))
+					print('Sell rate      : {}'.format(sell_rate))
+					print('Cut loss rate  : {}'.format(cut_loss_rate))
+					print('Amount used    : {}'.format(amount_to_trade+total_fees))
+					print('Final amount   : {}'.format(amount))
+					print(f'N trades-profit: {n_trades_profit}')
+					print(f'N trades-loss  : {n_trades_loss}')
+					print('N trades       : {}'.format(n_trades))
+					print('Total fees     : {}'.format(total_fees))
 					print('\t\tProfits: {}'.format(profits))
 					print('\t\tReturn : {}%'.format(round(return_rate, 1)))
 					results.append([
@@ -143,26 +201,17 @@ def simulate_all_symbols(
 						cut_loss_rate,
 						amount_used,
 						amount,
+						n_trades_profit,
+						n_trades_loss,
 						n_trades,
 						total_fees,
 						profits,
 						return_rate])
 
-	cols = [
-		'Periods', 
-		'Buy rate', 
-		'Sell rate', 
-		'Cut loss rate', 
-		'Amount used', 
-		'Final amount',
-		'Number of trades',
-		'Total fees', 
-		'Profits',
-		'Return rate']
 	df = pd.DataFrame(columns=cols, data=results)
 	df.to_csv(results_file, index=None)
 
-	return None
+	return True
 
 def simulate_one(
 	data_dic,
