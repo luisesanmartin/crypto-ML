@@ -1,7 +1,6 @@
 import utils_time
 import objects
 import numpy as np
-from sklearn import preprocessing
 
 def avg_price_symbol_periods(data_dic, symbol, periods, time, gap_epoch=objects.GAP_EPOCH):
 
