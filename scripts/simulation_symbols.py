@@ -6,8 +6,11 @@ import utils_data
 import utils_simulation
 import objects
 
-raw_data_folder = '../data/raw/bitstamp/'
-files = [f'{raw_data_folder}{f}' for f in os.listdir(raw_data_folder)]
+raw_data_folder = '../data/raw/bitstamp'
+symbols = objects.BITSTAMP_SYMBOLS
+start_date = '2024-11-15'
+end_date = '2025-02-15'
+files = [f'{raw_data_folder}/data_{symbol}_{start_date}_{end_date}.pkl' for symbol in symbols]
 all_data = {f.split('_')[1]: utils_data.open_pickle(f) for f in files}
 data_dic = utils_data.make_data_dic_bitstamp(all_data)
 

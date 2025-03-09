@@ -166,8 +166,8 @@ def simulate_all_symbols(
 								symbol_holding)
 
 					df = pd.DataFrame(columns=cols2, data=results_combination)
-					results_file = f'{detailed_results_path}/period{period}-buy_rate{buy_rate}-sell_rate{sell_rate}-cut_loss_rate{cut_loss_rate}.csv'
-					df.to_csv(results_file, index=None)
+					detailed_results_file = f'{detailed_results_path}/period{period}-buy_rate{buy_rate}-sell_rate{sell_rate}-cut_loss_rate{cut_loss_rate}.csv'
+					df.to_csv(detailed_results_file, index=None)
 					
 					# Estimating finals
 					if hold: # then we sell
