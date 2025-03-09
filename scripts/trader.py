@@ -55,7 +55,8 @@ def main():
 					current_price = current_prices[symbol]
 					avg_price = avg_prices[symbol]
 					
-					if current_price < avg_price * (1+buy_rate):
+					if (buy_rate < 0 and current_price < avg_price * (1+buy_rate)) or \
+					   (buy_rate > 0 and current_price > avg_price * (1+buy_rate)):
 
 						print(f'Valley detected in {symbol}!')
 						crypto_quantity = round(amount / current_price, 8)
