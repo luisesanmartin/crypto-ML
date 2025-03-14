@@ -12,7 +12,7 @@ def main():
 
 	# Globals and variables
 	symbols = objects.BITSTAMP_SYMBOLS
-	amount = 100
+	amount = 200
 	fee_rate = objects.FEE_RATE
 	buy_rate = objects.BUY_RATE
 	sell_rate = objects.SELL_RATE
