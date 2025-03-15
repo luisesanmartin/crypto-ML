@@ -28,40 +28,28 @@ def simulate_one_symbols(
 
 	if not hold:
 
-		avg_prices = {symbol: utils_features.avg_price_symbol_periods(data_dic, symbol, periods, time) for symbol in symbols}
+		#avg_prices = {symbol: utils_features.avg_price_symbol_periods(data_dic, symbol, periods, time) for symbol in symbols}
+		past_prices = {symbol: utils_features.past_price_symbol_periods(data_dic, symbol, periods, time) for symbol in symbols}
 
 		for symbol in symbols:
 
 			current_price = current_prices[symbol]
-			avg_price = avg_prices[symbol]
+			#avg_price = avg_prices[symbol]
+			past_price = past_prices[symbol]
 
-			if buy_rate < 0:
-				
-				if current_price < avg_price * (1+buy_rate):
+			#if current_price < avg_price * (1+buy_rate):
+			#if current_price > avg_price * (1+buy_rate):
+			if (buy_rate < 0 and current_price < past_price * (1+buy_rate)) or (buy_rate > 0 and current_price > past_price * (1+buy_rate)):
 
-					hold = True
-					crypto = amount / current_price
-					fee = amount * objects.FEE_RATE
-					amount = 0			
-					total_fees += fee
-					last_purchase_price = current_price
-					symbol_holding = symbol
+				hold = True
+				crypto = amount / current_price
+				fee = amount * objects.FEE_RATE
+				amount = 0			
+				total_fees += fee
+				last_purchase_price = current_price
+				symbol_holding = symbol
 
-					return hold, crypto, amount, total_fees, last_purchase_price, symbol_holding, n_trades_profit, n_trades_loss, n_trades
-
-			else: # buy_rate > 0
-
-				if current_price > avg_price * (1+buy_rate):
-
-					hold = True
-					crypto = amount / current_price
-					fee = amount * objects.FEE_RATE
-					amount = 0			
-					total_fees += fee
-					last_purchase_price = current_price
-					symbol_holding = symbol
-
-					return hold, crypto, amount, total_fees, last_purchase_price, symbol_holding, n_trades_profit, n_trades_loss, n_trades
+				return hold, crypto, amount, total_fees, last_purchase_price, symbol_holding, n_trades_profit, n_trades_loss, n_trades
 
 	elif hold:
 
@@ -166,7 +154,7 @@ def simulate_all_symbols(
 								symbol_holding)
 
 					df = pd.DataFrame(columns=cols2, data=results_combination)
-					detailed_results_file = f'{detailed_results_path}/period{period}-buy_rate{buy_rate}-sell_rate{sell_rate}-cut_loss_rate{cut_loss_rate}.csv'
+					detailed_results_file = f'{detailed_results_path}/step{objects.GAP_EPOCH}-period{period}-buy_rate{buy_rate}-sell_rate{sell_rate}-cut_loss_rate{cut_loss_rate}.csv'
 					df.to_csv(detailed_results_file, index=None)
 					
 					# Estimating finals

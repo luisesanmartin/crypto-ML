@@ -17,7 +17,7 @@ data_dic = utils_data.make_data_dic_bitstamp(all_data)
 
 def simulate(period):
 
-	results_file = f'../data/results/simulations-manual-rules-symbols-period{period}.csv'
+	results_file = f'../data/results/simulations-manual-rules-symbols-step{step}-period{period}.csv'
 	results_path = f'../data/results/period{period}'
 	if not os.path.exists(results_path):
 		os.makedirs(results_path)

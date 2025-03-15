@@ -2,9 +2,22 @@ import utils_time
 import objects
 import numpy as np
 
+def past_price_symbol_periods(data_dic, symbol, periods, time, gap_epoch=objects.GAP_EPOCH):
+
+	'''
+	Returns the price of the symbol n "periods" before "time"
+	'''
+
+	past_time = time - (gap_epoch * periods)
+	past_price = float(data_dic[past_time][symbol]['close'])
+
+	return past_price
+
+
 def avg_price_symbol_periods(data_dic, symbol, periods, time, gap_epoch=objects.GAP_EPOCH):
 
 	'''
+	Returns the average price of the symbol for the last n "periods" previous to "time"
 	'''
 
 	prices = []
@@ -13,7 +26,7 @@ def avg_price_symbol_periods(data_dic, symbol, periods, time, gap_epoch=objects.
 		time_iteration = time - (gap_epoch * i)
 		prices.append(float(data_dic[time_iteration][symbol]['close']))
 
-	return np.array(prices).mean()
+	return sum(prices) / len(prices)
 
 def avg_price_bistamp(data):
 
@@ -30,7 +43,7 @@ def avg_price_bistamp(data):
 		if i % 2 == 1:
 			close_prices.append(float(data_point['close']))
 
-	return np.array(close_prices).mean()
+	return sum(prices) / len(prices)
 
 def avg_price(data_dic, periods, time):
 
