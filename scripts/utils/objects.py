@@ -20,7 +20,9 @@ BUY_RATE = -.05
 SELL_RATE = .05
 CUT_LOSS_RATE = -.1
 PERIOD = 1
-GAP_EPOCH = 300 # five minutes
+GAP_EPOCH = 60 # one minute
+DATA_START = '2024-12-15'
+DATA_END = '2025-03-14'
 
 BITSTAMP_SYMBOLS = [
 	'btcusd',

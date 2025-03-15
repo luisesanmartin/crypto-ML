@@ -8,19 +8,20 @@ import utils_fetch
 
 symbols = objects.BITSTAMP_SYMBOLS
 raw_data_folder = '../data/raw/bitstamp'
-start = '2024-11-15'
-end = '2025-02-15'
+start = objects.DATA_START
+end = objects.DATA_END
+step = objects.GAP_EPOCH
 
 def main():
 
 	for symbol in symbols:
 
 		print(f'Getting data for {symbol}')
-		file = f'{raw_data_folder}/data_{symbol}_{start}_{end}.pkl'
+		file = f'{raw_data_folder}/data_{symbol}_{start}_{end}_step{step}.pkl'
 		if os.path.isfile(file):
 			continue
 
-		data = utils_fetch.get_data_bitstamp_from_to(start, end, symbol)
+		data = utils_fetch.get_data_bitstamp_from_to(start, end, symbol, step)
 		with open(file, 'wb') as f:
 			pickle.dump(data, f)
 

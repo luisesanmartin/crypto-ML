@@ -3,7 +3,6 @@ sys.path.insert(1, './utils')
 import utils_time as time_utils
 import utils_fetch as fetch_utils
 import utils_trade as trading_utils
-import utils_features
 from datetime import datetime
 import time
 import objects
@@ -12,7 +11,7 @@ def main():
 
 	# Globals and variables
 	symbols = objects.BITSTAMP_SYMBOLS
-	amount = 100
+	amount = 200
 	fee_rate = objects.FEE_RATE
 	buy_rate = objects.BUY_RATE
 	sell_rate = objects.SELL_RATE
