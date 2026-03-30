@@ -21,9 +21,12 @@ BUY_RATE = -.05
 SELL_RATE = .05
 CUT_LOSS_RATE = -.1
 PERIOD = 1
-GAP_EPOCH = 300 # one minute
-DATA_START = '2024-12-15'
-DATA_END = '2025-03-14'
+GAP_EPOCH = 60 # 60 seconds
+DATA_START = '2025-12-01'
+DATA_END = '2026-03-26'
+WALK_FORWARD_OPT_WINDOW_DAYS = 14 # optimization window in days for walk-forward analysis
+WALK_FORWARD_TEST_WINDOW_DAYS = 14 # test window in days for walk-forward analysis (typically same as OPT_WINDOW_DAYS)
+NUM_PROCESSES = 18 # number of cores to use for parallelization
 
 BITSTAMP_SYMBOLS = [
 	'btcusd',
@@ -42,7 +45,7 @@ BITSTAMP_SYMBOLS = [
 	'xdcusd',
 	'shibusd',
 	'dotusd',
-	'maticusd',
+	#'maticusd',
 	'uniusd',
 	'ftmusd',
 	'pepeusd'

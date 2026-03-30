@@ -33,7 +33,7 @@ def simulate(period):
 
 def main():
 
-	process_pool = multiprocessing.Pool(processes=16)
+	process_pool = multiprocessing.Pool(processes=objects.NUM_PROCESSES)
 	process_pool.map(simulate, objects.PERIODS)
 
 if __name__ == '__main__':

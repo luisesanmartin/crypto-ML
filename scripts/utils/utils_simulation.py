@@ -44,7 +44,7 @@ def simulate_one_symbols(
 				hold = True
 				crypto = amount / current_price
 				fee = amount * objects.FEE_RATE
-				amount = 0			
+				amount = 0
 				total_fees += fee
 				last_purchase_price = current_price
 				symbol_holding = symbol
@@ -338,3 +338,82 @@ def simulate_all(
 	df.to_csv(results_file, index=None)
 
 	return None
+
+def filter_data_dic_by_time_range(data_dic, start_timestamp, end_timestamp):
+	'''
+	Filter data_dic to only include timestamps within the given range (inclusive).
+	
+	Args:
+		data_dic: Dictionary with timestamp keys
+		start_timestamp: Unix timestamp (integer) for start of range
+		end_timestamp: Unix timestamp (integer) for end of range
+	
+	Returns:
+		Filtered data dictionary
+	'''
+	filtered_dic = {
+		time: data_dic[time] 
+		for time in data_dic.keys() 
+		if start_timestamp <= time <= end_timestamp
+	}
+	return filtered_dic
+
+def get_best_parameters(results_file):
+	'''
+	Read results CSV and return the parameters that yielded the highest return rate.
+	
+	Args:
+		results_file: Path to CSV file with simulation results
+	
+	Returns:
+		Dictionary with keys: 'period', 'buy_rate', 'sell_rate', 'cut_loss_rate', 'return_rate'
+	'''
+	df = pd.read_csv(results_file)
+	# Find row with highest return rate
+	best_row = df.loc[df['Return rate'].idxmax()]
+	
+	return {
+		'period': int(best_row['Periods']),
+		'buy_rate': best_row['Buy rate'],
+		'sell_rate': best_row['Sell rate'],
+		'cut_loss_rate': best_row['Cut loss rate'],
+		'return_rate': best_row['Return rate']
+	}
+
+def simulate_all_symbols_date_range(
+	data_dic,
+	results_file,
+	detailed_results_path,
+	amount_to_trade,
+	start_timestamp,
+	end_timestamp,
+	symbols = objects.BITSTAMP_SYMBOLS,
+	periods=objects.PERIODS,
+	buy_rates=objects.BUY_RATES,
+	sell_rates=objects.SELL_RATES,
+	cut_loss_rates=objects.CUT_LOSS_RATES):
+
+	'''
+	Run simulations for all symbol combinations over a specific date range.
+	
+	Args:
+		data_dic: Dictionary with all OHLC data
+		start_timestamp, end_timestamp: Unix timestamps defining the range
+		Other args same as simulate_all_symbols()
+	'''
+	
+	# Filter data to the specified time range
+	filtered_data_dic = filter_data_dic_by_time_range(data_dic, start_timestamp, end_timestamp)
+	
+	# Run regular simulations with filtered data
+	simulate_all_symbols(
+		data_dic=filtered_data_dic,
+		results_file=results_file,
+		detailed_results_path=detailed_results_path,
+		amount_to_trade=amount_to_trade,
+		symbols=symbols,
+		periods=periods,
+		buy_rates=buy_rates,
+		sell_rates=sell_rates,
+		cut_loss_rates=cut_loss_rates
+	)
