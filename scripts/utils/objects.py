@@ -22,8 +22,8 @@ SELL_RATE = .05
 CUT_LOSS_RATE = -.1
 PERIOD = 1
 GAP_EPOCH = 60 # 60 seconds
-DATA_START = '2025-12-01'
-DATA_END = '2026-03-26'
+DATA_START = '2025-01-01'
+DATA_END = '2026-03-29'
 WALK_FORWARD_OPT_WINDOW_DAYS = 14 # optimization window in days for walk-forward analysis
 WALK_FORWARD_TEST_WINDOW_DAYS = 14 # test window in days for walk-forward analysis (typically same as OPT_WINDOW_DAYS)
 NUM_PROCESSES = 18 # number of cores to use for parallelization
@@ -69,13 +69,13 @@ COLS = [
 	'inc_vol_last4',
 	'inc_vol_last5',
 	'inc_vol_last6',
-	'trades_sd',
-	'inc_trades_last_1',
-	'inc_trades_last_2',
-	'inc_trades_last_3',
-	'inc_trades_last_4',
-	'inc_trades_last_5',
-	'inc_trades_last_6',
+	#'trades_sd',
+	#'inc_trades_last_1',
+	#'inc_trades_last_2',
+	#'inc_trades_last_3',
+	#'inc_trades_last_4',
+	#'inc_trades_last_5',
+	#'inc_trades_last_6',
 	'price_ranges_oc_standardized',
 	'price_ranges_hl_standardized',
 	'price_ranges_oc_bin1',
@@ -87,27 +87,27 @@ COLS = [
 	'price_ranges_oc_bin2_quant',
 	'price_ranges_oc_bin3_quant',
 	'price_ranges_oc_bin4_quant',
-	'price_ranges_oc_bin5_quant',
-	'price_ranges_oc_bin6_quant',
-	'price_ranges_oc_bin7_quant',
-	'price_ranges_oc_bin8_quant',
-	'price_ranges_oc_bin9_quant',
-	'price_ranges_oc_bin10_quant',
+	#'price_ranges_oc_bin5_quant',
+	#'price_ranges_oc_bin6_quant',
+	#'price_ranges_oc_bin7_quant',
+	#'price_ranges_oc_bin8_quant',
+	#'price_ranges_oc_bin9_quant',
+	#'price_ranges_oc_bin10_quant',
 	'price_ranges_hl_bin1',
 	'price_ranges_hl_bin2',
 	'price_ranges_hl_bin3',
 	'price_ranges_hl_bin4',
 	'price_ranges_hl_bin5',
-	'price_ranges_hl_bin1_quant',
-	'price_ranges_hl_bin2_quant',
-	'price_ranges_hl_bin3_quant',
-	'price_ranges_hl_bin4_quant',
-	'price_ranges_hl_bin5_quant',
-	'price_ranges_hl_bin6_quant',
-	'price_ranges_hl_bin7_quant',
-	'price_ranges_hl_bin8_quant',
-	'price_ranges_hl_bin9_quant',
-	'price_ranges_hl_bin10_quant',
+	#'price_ranges_hl_bin1_quant',
+	#'price_ranges_hl_bin2_quant',
+	#'price_ranges_hl_bin3_quant',
+	#'price_ranges_hl_bin4_quant',
+	#'price_ranges_hl_bin5_quant',
+	#'price_ranges_hl_bin6_quant',
+	#'price_ranges_hl_bin7_quant',
+	#'price_ranges_hl_bin8_quant',
+	#'price_ranges_hl_bin9_quant',
+	#'price_ranges_hl_bin10_quant',
 	'max_price_is_open',
 	'max_price_is_close',
 	'max_close_01',
@@ -130,7 +130,7 @@ COLS = [
 	'min_open_0001',
 	'inc_price',
 	'inc_vol',
-	'inc_trades',
+	#'inc_trades',
 	'inc_price_range_oc',
 	'inc_price_range_hl',
 	'price_close_diffs_std',
@@ -138,6 +138,6 @@ COLS = [
 	'price_max_diffs_std',
 	'price_min_diffs_std',
 	'volume_diffs_std',
-	'trades_diffs_std',
-	'avg_volumes_per_trade_std'
+	#'trades_diffs_std',
+	#'avg_volumes_per_trade_std'
 ]

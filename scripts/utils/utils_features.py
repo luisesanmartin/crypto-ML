@@ -58,7 +58,7 @@ def avg_price(data_dic, periods, time):
 
 		past_time = utils_time.past_time(time, i)
 		try:
-			past_price = data_dic[past_time]['price_close']
+			past_price = float(data_dic[past_time]['close'])
 			summation += past_price
 			n += 1
 		except KeyError:
@@ -73,8 +73,8 @@ def price_increased(data_dic, time):
 	'''
 
 	try:
-		price_open = data_dic[time]['price_open']
-		price_close = data_dic[time]['price_close']
+		price_open = float(data_dic[time]['open'])
+		price_close = float(data_dic[time]['close'])
 	except KeyError:
 		return np.nan
 
@@ -110,20 +110,20 @@ def is_valley(data_dic, time, both_sides= False, n=objects.VALLEY_PERIODS, gap=o
 			if past_time not in data_dic:
 				return np.nan
 	
-	current_price = data_dic[time]['price_close']
+	current_price = float(data_dic[time]['close'])
 
 	for i in range(1, n + 1):
 
 		if both_sides:
 			# Checking periods before:
 			past_time = utils_time.past_time(time, i, gap)
-			past_price = data_dic[past_time]['price_close']
+			past_price = float(data_dic[past_time]['close'])
 			if past_price < current_price:
 				return 0
 		
 		# Checking periods after:
 		future_time = utils_time.future_time(time, i, gap)
-		future_price = data_dic[future_time]['price_close']
+		future_price = float(data_dic[future_time]['close'])
 		if future_price < current_price:
 			return 0
 		if future_price > current_price * (1 + margin):
@@ -141,8 +141,8 @@ def attribute_increased_for_time(data_dic, time, attribute, gap=objects.PERIOD_D
 	previous_time = utils_time.past_time(time, 1, gap)
 	
 	try:
-		attribute_now = data_dic[time][attribute]
-		attribute_past = data_dic[previous_time][attribute]
+		attribute_now = float(data_dic[time][attribute])
+		attribute_past = float(data_dic[previous_time][attribute])
 	except KeyError:
 		return np.nan
 
@@ -158,7 +158,7 @@ def volume_increased_past(data_dic, time, n, gap=objects.PERIOD_DATA_MIN):
 	'''
 
 	initial_time = utils_time.past_time(time, n, gap)
-	result = attribute_increased_for_time(data_dic, initial_time, 'volume_traded', gap)
+	result = attribute_increased_for_time(data_dic, initial_time, 'volume', gap)
 
 	return result
 
@@ -176,14 +176,14 @@ def trades_increased_past(data_dic, time, n, gap=objects.PERIOD_DATA_MIN):
 def get_price(data_dic, time):
 
 	try:
-		return data_dic[time]['price_close']
+		return float(data_dic[time]['close'])
 	except KeyError:
 		return np.nan
 
 def get_volume(data_dic, time):
 
 	try:
-		return data_dic[time]['volume_traded']
+		return float(data_dic[time]['volume'])
 	except KeyError:
 		return np.nan
 
@@ -197,8 +197,8 @@ def get_trades(data_dic, time):
 def max_price_is_open_fn(data_dic, time):
 
 	try:
-		max_price = data_dic[time]['price_high']
-		open_price = data_dic[time]['price_open']
+		max_price = float(data_dic[time]['high'])
+		open_price = float(data_dic[time]['open'])
 		if open_price == max_price:
 			return 1
 		else:
@@ -209,8 +209,8 @@ def max_price_is_open_fn(data_dic, time):
 def min_price_is_open_fn(data_dic, time):
 
 	try:
-		min_price = data_dic[time]['price_low']
-		open_price = data_dic[time]['price_open']
+		min_price = float(data_dic[time]['low'])
+		open_price = float(data_dic[time]['open'])
 		if open_price == min_price:
 			return 1
 		else:
@@ -221,8 +221,8 @@ def min_price_is_open_fn(data_dic, time):
 def max_price_is_close_fn(data_dic, time):
 
 	try:
-		max_price = data_dic[time]['price_high']
-		close_price = data_dic[time]['price_close']
+		max_price = float(data_dic[time]['high'])
+		close_price = float(data_dic[time]['close'])
 		if close_price == max_price:
 			return 1
 		else:
@@ -233,8 +233,8 @@ def max_price_is_close_fn(data_dic, time):
 def min_price_is_close_fn(data_dic, time):
 
 	try:
-		min_price = data_dic[time]['price_low']
-		close_price = data_dic[time]['price_close']
+		min_price = float(data_dic[time]['low'])
+		close_price = float(data_dic[time]['close'])
 		if close_price == min_price:
 			return 1
 		else:
@@ -245,8 +245,8 @@ def min_price_is_close_fn(data_dic, time):
 def price_range_oc(data_dic, time):
 
 	try:
-		price_open = data_dic[time]['price_open']
-		price_close = data_dic[time]['price_close']
+		price_open = float(data_dic[time]['open'])
+		price_close = float(data_dic[time]['close'])
 		return price_close - price_open
 	except KeyError:
 		return np.nan
@@ -254,8 +254,8 @@ def price_range_oc(data_dic, time):
 def price_range_hl(data_dic, time):
 
 	try:
-		price_high = data_dic[time]['price_high']
-		price_low = data_dic[time]['price_low']
+		price_high = float(data_dic[time]['high'])
+		price_low = float(data_dic[time]['low'])
 		return price_high - price_low
 	except KeyError:
 		return np.nan
@@ -317,8 +317,8 @@ def feature_diff(data_dic, time, feature):
 
 	previous_time = utils_time.past_time(time, 1)
 	try:
-		current_value = data_dic[time][feature]
-		previous_value = data_dic[previous_time][feature]
+		current_value = float(data_dic[time][feature])
+		previous_value = float(data_dic[previous_time][feature])
 	except KeyError:
 		return np.nan
 

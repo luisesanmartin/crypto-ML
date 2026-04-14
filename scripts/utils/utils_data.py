@@ -1,5 +1,5 @@
-#from sklearn import preprocessing
-#from sklearn import model_selection
+from sklearn import preprocessing
+from sklearn import model_selection
 import utils_time
 import utils_features
 import objects
@@ -21,7 +21,7 @@ def make_data_dic(data):
     for data_point in data:
 
     	try:
-    		key = data_point['time_period_end'].split('.')[0]
+    		key = utils_time.epoch_in_datetime(data_point['timestamp'])
     	except TypeError:
     		print("data_point:")
     		print(data_point)
@@ -75,16 +75,16 @@ def make_data_train_test(data_dic, cols=objects.COLS):
 	valleys = [utils_features.is_valley(data_dic, time) for time in times]
 
 	# All other variables
-	data = make_x(data_dic, for_prediction=False)
+	data = make_x(data_dic, for_prediction=False, for_validation=False)
 	data = [times, valleys] + data
 	df = pd.DataFrame(dict(zip(cols, data)))
 
-	# Removing obs with nan
+	# Removing obs with any nan
 	n1 = len(df)
 	df = df.dropna(how='any')
 	n2 = len(df)
-	print('\tObservations: {}'.format(n2))
-	print('\tKept {}% of initial obs after dropping columns with missings'.format(round(n2/n1*100)))
+	print(f'\tObservations: {n2}')
+	print(f'\tKept {round(n2/n1*100)}% of initial obs after dropping columns with missings')
 
 	df_train, df_test = model_selection.train_test_split(df, test_size=objects.TEST_SIZE)
 
@@ -123,7 +123,7 @@ def make_x(
 	inc_price = [utils_features.price_increased_next(data_dic, time, 0) for time in times]
 
 	# Standardized close price
-	close_prices = [data_dic[time]['price_close'] for time in times]
+	close_prices = [float(data_dic[time]['close']) for time in times]
 	if for_prediction or for_validation:
 		with open(standardizers_path+'standardizer_prices.pkl', 'rb') as f:
 			standardizer = pickle.load(f)
@@ -142,10 +142,10 @@ def make_x(
 	inc_price_last6 = [utils_features.price_increased_next(data_dic, time, -6) for time in times]
 
 	# Volume increased in this observation
-	inc_vol = [utils_features.attribute_increased_for_time(data_dic, time, 'volume_traded') for time in times]
+	inc_vol = [utils_features.attribute_increased_for_time(data_dic, time, 'volume') for time in times]
 
 	# Standardized volume traded
-	volumes = [data_dic[time]['volume_traded'] for time in times]
+	volumes = [float(data_dic[time]['volume']) for time in times]
 	if for_prediction or for_validation:
 		with open(standardizers_path+'standardizer_volumes.pkl', 'rb') as f:
 			standardizer = pickle.load(f)
@@ -164,18 +164,18 @@ def make_x(
 	inc_vol_last6 = [utils_features.volume_increased_past(data_dic, time, 6) for time in times]
 
 	# Trade increased in this observation
-	inc_trades = [utils_features.attribute_increased_for_time(data_dic, time, 'trades_count') for time in times]
+	#inc_trades = [utils_features.attribute_increased_for_time(data_dic, time, 'trades_count') for time in times]
 
 	# Standardized N of trades
-	trades = [data_dic[time]['trades_count'] for time in times]
-	if for_prediction or for_validation:
-		with open(standardizers_path+'standardizer_trades.pkl', 'rb') as f:
-			standardizer = pickle.load(f)
-	else:
-		standardizer = fit_standardizer(trades)
-		with open(standardizers_path+'standardizer_trades.pkl', 'wb') as f:
-			pickle.dump(standardizer, f)
-	trades_standardized = standardize(trades, standardizer)
+	#trades = [data_dic[time]['trades_count'] for time in times]
+	#if for_prediction or for_validation:
+	#	with open(standardizers_path+'standardizer_trades.pkl', 'rb') as f:
+	#		standardizer = pickle.load(f)
+	#else:
+	#	standardizer = fit_standardizer(trades)
+	#	with open(standardizers_path+'standardizer_trades.pkl', 'wb') as f:
+	#		pickle.dump(standardizer, f)
+	#trades_standardized = standardize(trades, standardizer)
 
 	# Trade increased in last X observations
 	inc_trade_last1 = [utils_features.trades_increased_past(data_dic, time, 1) for time in times]
@@ -233,7 +233,7 @@ def make_x(
 		with open(binner_path, 'rb') as f:
 			binner = pickle.load(f)
 	else:
-		binner = preprocessing.KBinsDiscretizer(n_bins=10, encode='onehot-dense', strategy='quantile')
+		binner = preprocessing.KBinsDiscretizer(n_bins=4, encode='onehot-dense', strategy='quantile')
 		binner.fit(price_ranges_oc_np)
 		with open(binner_path, 'wb') as f:
 			pickle.dump(binner, f)
@@ -242,12 +242,6 @@ def make_x(
 	price_ranges_oc_bin2_quant = bins[:, 1]
 	price_ranges_oc_bin3_quant = bins[:, 2]
 	price_ranges_oc_bin4_quant = bins[:, 3]
-	price_ranges_oc_bin5_quant = bins[:, 4]
-	price_ranges_oc_bin6_quant = bins[:, 5]
-	price_ranges_oc_bin7_quant = bins[:, 6]
-	price_ranges_oc_bin8_quant = bins[:, 7]
-	price_ranges_oc_bin9_quant = bins[:, 8]
-	price_ranges_oc_bin10_quant = bins[:, 9]
 
 	# Price range bins (HL)
 	price_ranges_hl_np = np.array(price_ranges_hl).reshape(-1, 1)
@@ -268,26 +262,19 @@ def make_x(
 	price_ranges_hl_bin5 = bins[:, 4]
 
 	# Price range bins (HL) quantiles
-	binner_path = binners_path + 'standardizer_price_range_bins_hl_quantiles.pkl'
-	if for_prediction or for_validation:
-		with open(binner_path, 'rb') as f:
-			binner = pickle.load(f)
-	else:
-		binner = preprocessing.KBinsDiscretizer(n_bins=10, encode='onehot-dense', strategy='quantile')
-		binner.fit(price_ranges_hl_np)
-		with open(binner_path, 'wb') as f:
-			pickle.dump(binner, f)
-	bins = binner.transform(price_ranges_hl_np)
-	price_ranges_hl_bin1_quant = bins[:, 0]
-	price_ranges_hl_bin2_quant = bins[:, 1]
-	price_ranges_hl_bin3_quant = bins[:, 2]
-	price_ranges_hl_bin4_quant = bins[:, 3]
-	price_ranges_hl_bin5_quant = bins[:, 4]
-	price_ranges_hl_bin6_quant = bins[:, 5]
-	price_ranges_hl_bin7_quant = bins[:, 6]
-	price_ranges_hl_bin8_quant = bins[:, 7]
-	price_ranges_hl_bin9_quant = bins[:, 8]
-	price_ranges_hl_bin10_quant = bins[:, 9]
+	#binner_path = binners_path + 'standardizer_price_range_bins_hl_quantiles.pkl'
+	#if for_prediction or for_validation:
+	#	with open(binner_path, 'rb') as f:
+	#		binner = pickle.load(f)
+	#else:
+	#	binner = preprocessing.KBinsDiscretizer(n_bins=3, encode='onehot-dense', strategy='quantile')
+	#	binner.fit(price_ranges_hl_np)
+	#	with open(binner_path, 'wb') as f:
+	#		pickle.dump(binner, f)
+	#bins = binner.transform(price_ranges_hl_np)
+	#price_ranges_hl_bin1_quant = bins[:, 0]
+	#price_ranges_hl_bin2_quant = bins[:, 1]
+	#price_ranges_hl_bin3_quant = bins[:, 2]
 
 	# Max price is open price
 	max_price_is_open = [utils_features.max_price_is_open_fn(data_dic, time) for time in times]
@@ -308,63 +295,63 @@ def make_x(
 	inc_price_range_hl = [utils_features.price_range_hl_increase(data_dic, time) for time in times]
 
 	# Max price is within 1%, 0.1%, 0.05%, 0.01% of close price
-	max_close_01 = [utils_features.x_is_within_gap(data_dic[time]['price_high'], data_dic[time]['price_close'], 0.01) for time in times]
-	max_close_001 = [utils_features.x_is_within_gap(data_dic[time]['price_high'], data_dic[time]['price_close'], 0.001) for time in times]
-	max_close_0005 = [utils_features.x_is_within_gap(data_dic[time]['price_high'], data_dic[time]['price_close'], 0.0005) for time in times]
-	max_close_0001 = [utils_features.x_is_within_gap(data_dic[time]['price_high'], data_dic[time]['price_close'], 0.0001) for time in times]
+	max_close_01 = [utils_features.x_is_within_gap(float(data_dic[time]['high']), float(data_dic[time]['close']), 0.01) for time in times]
+	max_close_001 = [utils_features.x_is_within_gap(float(data_dic[time]['high']), float(data_dic[time]['close']), 0.001) for time in times]
+	max_close_0005 = [utils_features.x_is_within_gap(float(data_dic[time]['high']), float(data_dic[time]['close']), 0.0005) for time in times]
+	max_close_0001 = [utils_features.x_is_within_gap(float(data_dic[time]['high']), float(data_dic[time]['close']), 0.0001) for time in times]
 
 	# Max price is within 1%, 0.1%, 0.05%, 0.01% of open price
-	max_open_01 = [utils_features.x_is_within_gap(data_dic[time]['price_high'], data_dic[time]['price_open'], 0.01) for time in times]
-	max_open_001 = [utils_features.x_is_within_gap(data_dic[time]['price_high'], data_dic[time]['price_open'], 0.001) for time in times]
-	max_open_0005 = [utils_features.x_is_within_gap(data_dic[time]['price_high'], data_dic[time]['price_open'], 0.0005) for time in times]
-	max_open_0001 = [utils_features.x_is_within_gap(data_dic[time]['price_high'], data_dic[time]['price_open'], 0.0001) for time in times]
+	max_open_01 = [utils_features.x_is_within_gap(float(data_dic[time]['high']), float(data_dic[time]['open']), 0.01) for time in times]
+	max_open_001 = [utils_features.x_is_within_gap(float(data_dic[time]['high']), float(data_dic[time]['open']), 0.001) for time in times]
+	max_open_0005 = [utils_features.x_is_within_gap(float(data_dic[time]['high']), float(data_dic[time]['open']), 0.0005) for time in times]
+	max_open_0001 = [utils_features.x_is_within_gap(float(data_dic[time]['high']), float(data_dic[time]['open']), 0.0001) for time in times]
 
 	# Min price is within 1%, 0.1%, 0.05%, 0.01% of close price
-	min_close_01 = [utils_features.x_is_within_gap(data_dic[time]['price_low'], data_dic[time]['price_close'], 0.01) for time in times]
-	min_close_001 = [utils_features.x_is_within_gap(data_dic[time]['price_low'], data_dic[time]['price_close'], 0.001) for time in times]
-	min_close_0005 = [utils_features.x_is_within_gap(data_dic[time]['price_low'], data_dic[time]['price_close'], 0.0005) for time in times]
-	min_close_0001 = [utils_features.x_is_within_gap(data_dic[time]['price_low'], data_dic[time]['price_close'], 0.0001) for time in times]
+	min_close_01 = [utils_features.x_is_within_gap(float(data_dic[time]['low']), float(data_dic[time]['close']), 0.01) for time in times]
+	min_close_001 = [utils_features.x_is_within_gap(float(data_dic[time]['low']), float(data_dic[time]['close']), 0.001) for time in times]
+	min_close_0005 = [utils_features.x_is_within_gap(float(data_dic[time]['low']), float(data_dic[time]['close']), 0.0005) for time in times]
+	min_close_0001 = [utils_features.x_is_within_gap(float(data_dic[time]['low']), float(data_dic[time]['close']), 0.0001) for time in times]
 
 	# Min price is within 1%, 0.1%, 0.05%, 0.01% of open price
-	min_open_01 = [utils_features.x_is_within_gap(data_dic[time]['price_low'], data_dic[time]['price_open'], 0.01) for time in times]
-	min_open_001 = [utils_features.x_is_within_gap(data_dic[time]['price_low'], data_dic[time]['price_open'], 0.001) for time in times]
-	min_open_0005 = [utils_features.x_is_within_gap(data_dic[time]['price_low'], data_dic[time]['price_open'], 0.0005) for time in times]
-	min_open_0001 = [utils_features.x_is_within_gap(data_dic[time]['price_low'], data_dic[time]['price_open'], 0.0001) for time in times]
+	min_open_01 = [utils_features.x_is_within_gap(float(data_dic[time]['low']), float(data_dic[time]['open']), 0.01) for time in times]
+	min_open_001 = [utils_features.x_is_within_gap(float(data_dic[time]['low']), float(data_dic[time]['open']), 0.001) for time in times]
+	min_open_0005 = [utils_features.x_is_within_gap(float(data_dic[time]['low']), float(data_dic[time]['open']), 0.0005) for time in times]
+	min_open_0001 = [utils_features.x_is_within_gap(float(data_dic[time]['low']), float(data_dic[time]['open']), 0.0001) for time in times]
 
 	# Difference in close price, standardized
-	price_close_diffs = [utils_features.feature_diff(data_dic, time, 'price_close') for time in times]
+	price_close_diffs = [utils_features.feature_diff(data_dic, time, 'close') for time in times]
 	standardizer_path = standardizers_path + 'standardizer_price_close_diff.pkl'
 	price_close_diffs_std = standardize_with_path(price_close_diffs, standardizer_path, for_prediction)
 
 	# Difference in open price, standardized
-	price_open_diffs = [utils_features.feature_diff(data_dic, time, 'price_open') for time in times]
+	price_open_diffs = [utils_features.feature_diff(data_dic, time, 'open') for time in times]
 	standardizer_path = standardizers_path + 'standardizer_price_open_diff.pkl'
 	price_open_diffs_std = standardize_with_path(price_open_diffs, standardizer_path, for_prediction)
 
 	# Difference in max price, standardized
-	price_max_diffs = [utils_features.feature_diff(data_dic, time, 'price_high') for time in times]
+	price_max_diffs = [utils_features.feature_diff(data_dic, time, 'high') for time in times]
 	standardizer_path = standardizers_path + 'standardizer_price_max_diff.pkl'
 	price_max_diffs_std = standardize_with_path(price_max_diffs, standardizer_path, for_prediction)
 
 	# Difference in min price, standardized
-	price_min_diffs = [utils_features.feature_diff(data_dic, time, 'price_low') for time in times]
+	price_min_diffs = [utils_features.feature_diff(data_dic, time, 'low') for time in times]
 	standardizer_path = standardizers_path + 'standardizer_price_min_diff.pkl'
 	price_min_diffs_std = standardize_with_path(price_min_diffs, standardizer_path, for_prediction)
 
 	# Difference in volume, standardized
-	volume_diffs = [utils_features.feature_diff(data_dic, time, 'volume_traded') for time in times]
+	volume_diffs = [utils_features.feature_diff(data_dic, time, 'volume') for time in times]
 	standardizer_path = standardizers_path + 'standardizer_volume_diff.pkl'
 	volume_diffs_std = standardize_with_path(volume_diffs, standardizer_path, for_prediction)
 
 	# Difference in trades, standardized
-	trades_diffs = [utils_features.feature_diff(data_dic, time, 'trades_count') for time in times]
-	standardizer_path = standardizers_path + 'standardizer_trades_diff.pkl'
-	trades_diffs_std = standardize_with_path(trades_diffs, standardizer_path, for_prediction)
+	#trades_diffs = [utils_features.feature_diff(data_dic, time, 'trades_count') for time in times]
+	#standardizer_path = standardizers_path + 'standardizer_trades_diff.pkl'
+	#trades_diffs_std = standardize_with_path(trades_diffs, standardizer_path, for_prediction)
 
 	# Avg volume per trade standardized
-	avg_volumes_per_trade = [utils_features.avg_vol_per_trade(data_dic, time) for time in times]
-	standardizer_path = standardizers_path + 'standardizer_avg_volumes_per_trade.pkl'
-	avg_volumes_per_trade_std = standardize_with_path(avg_volumes_per_trade, standardizer_path, for_prediction)
+	#avg_volumes_per_trade = [utils_features.avg_vol_per_trade(data_dic, time) for time in times]
+	#standardizer_path = standardizers_path + 'standardizer_avg_volumes_per_trade.pkl'
+	#avg_volumes_per_trade_std = standardize_with_path(avg_volumes_per_trade, standardizer_path, for_prediction)
 
 	# Features increased in all last n times
 
@@ -387,13 +374,13 @@ def make_x(
 		inc_vol_last4,
 		inc_vol_last5,
 		inc_vol_last6,
-		trades_standardized,
-		inc_trade_last1,
-		inc_trade_last2,
-		inc_trade_last3,
-		inc_trade_last4,
-		inc_trade_last5,
-		inc_trade_last6,
+		#trades_standardized,
+		#inc_trade_last1,
+		#inc_trade_last2,
+		#inc_trade_last3,
+		#inc_trade_last4,
+		#inc_trade_last5,
+		#inc_trade_last6,
 		price_ranges_oc_standardized,
 		#inc_price_range_oc_last1,
 		#inc_price_range_oc_last2,
@@ -417,27 +404,27 @@ def make_x(
 		price_ranges_oc_bin2_quant,
 		price_ranges_oc_bin3_quant,
 		price_ranges_oc_bin4_quant,
-		price_ranges_oc_bin5_quant,
-		price_ranges_oc_bin6_quant,
-		price_ranges_oc_bin7_quant,
-		price_ranges_oc_bin8_quant,
-		price_ranges_oc_bin9_quant,
-		price_ranges_oc_bin10_quant,
+		#price_ranges_oc_bin5_quant,
+		#price_ranges_oc_bin6_quant,
+		#price_ranges_oc_bin7_quant,
+		#price_ranges_oc_bin8_quant,
+		#price_ranges_oc_bin9_quant,
+		#price_ranges_oc_bin10_quant,
 		price_ranges_hl_bin1,
 		price_ranges_hl_bin2,
 		price_ranges_hl_bin3,
 		price_ranges_hl_bin4,
 		price_ranges_hl_bin5,
-		price_ranges_hl_bin1_quant,
-		price_ranges_hl_bin2_quant,
-		price_ranges_hl_bin3_quant,
-		price_ranges_hl_bin4_quant,
-		price_ranges_hl_bin5_quant,
-		price_ranges_hl_bin6_quant,
-		price_ranges_hl_bin7_quant,
-		price_ranges_hl_bin8_quant,
-		price_ranges_hl_bin9_quant,
-		price_ranges_hl_bin10_quant,
+		#price_ranges_hl_bin1_quant,
+		#price_ranges_hl_bin2_quant,
+		#price_ranges_hl_bin3_quant,
+		#price_ranges_hl_bin4_quant,
+		#price_ranges_hl_bin5_quant,
+		#price_ranges_hl_bin6_quant,
+		#price_ranges_hl_bin7_quant,
+		#price_ranges_hl_bin8_quant,
+		#price_ranges_hl_bin9_quant,
+		#price_ranges_hl_bin10_quant,
 		max_price_is_open,
 		max_price_is_close,
 		max_close_01,
@@ -460,7 +447,7 @@ def make_x(
 		min_open_0001,
 		inc_price,
 		inc_vol,
-		inc_trades,
+		#inc_trades,
 		inc_price_range_oc,
 		inc_price_range_hl,
 		price_close_diffs_std,
@@ -468,8 +455,8 @@ def make_x(
 		price_max_diffs_std,
 		price_min_diffs_std,
 		volume_diffs_std,
-		trades_diffs_std,
-		avg_volumes_per_trade_std
+		#trades_diffs_std,
+		#avg_volumes_per_trade_std
 	]
 
 	return data
