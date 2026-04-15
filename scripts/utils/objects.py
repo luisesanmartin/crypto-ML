@@ -13,6 +13,7 @@ PERIOD = 1
 GAP_EPOCH = 60 # 60 seconds
 DATA_START = '2025-01-01'
 DATA_END = '2026-03-29'
+PATIENCE = 20
 
 # Columns in working df
 COLS = [
