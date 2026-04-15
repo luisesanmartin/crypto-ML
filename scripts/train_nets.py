@@ -25,12 +25,11 @@ def main():
 	else:
 		model = nets.net1().float()
 		print('Using new model')
-	optimizer = optim.SGD(params=model.parameters(), lr=0.001, momentum=0.9)
-	#optimizer = optim.Adam(params=model.parameters(), lr=0.1e-4)
+	optimizer = optim.Adam(params=model.parameters(), lr=1e-3, weight_decay=1e-4)
 	dataset = loader.cryptoData()
-	train_data = DataLoader(dataset, batch_size=32, shuffle=True, num_workers=15)
+	train_data = DataLoader(dataset, batch_size=32, shuffle=True, num_workers=12)
 	epochs = 100000
-	#loss_file = '../data/results/loss_torch-net-20241108.csv'
+	
 
 	# Training
 	for epoch in range(epochs):
