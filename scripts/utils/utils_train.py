@@ -126,8 +126,8 @@ def train(
 		print(f'\tRecall: {recall:.5f}')
 		print(f'\tAccuracy: {accuracy:.5f}')
 
-	if return_val_loss:
-		return val_loss
+		if return_val_loss:
+			return val_loss
 
 	# Saving model
 	if epoch % 100 == 0 and net_file:
