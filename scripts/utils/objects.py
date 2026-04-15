@@ -1,56 +1,18 @@
-SYMBOL_ID = 'BITSTAMP_SPOT_BTC_USD'
 SYMBOL_ID_BITSTAMP = 'btcusd'
-URL = 'https://rest.coinapi.io/v1/ohlcv/{}/history'
 URL_BITSTAMP = 'https://www.bitstamp.net/api/v2/ohlc/{}/'
-PERIOD_DATA = '10MIN'
 PERIOD_DATA_MIN = 10
 TIME_FMT = '%Y-%m-%dT%H:%M:%S'
-DATA_MAX = 100000
 MARGIN = 0.01
-FEE_RATE = 0.004
 VALLEY_PERIODS = 18 # this times 10 minutes divided by 60 is the number of hours
-POS_WEIGHTS = (79351-6040)/6040 # neg samples / pos samples
+POS_WEIGHTS = (520600-72793)/72793 # neg samples / pos samples
 TEST_SIZE = 0.2
 PREDICT_THRESHOLD = 0.7
 PREDICT_THRESHOLD2 = 0.9
-#PERIODS = [5//5, 30//5, 60//5, 90//5, 120//5, 180//5, 240//5, 300//5, 360//5, 480//5, 600//5, 720//5, 1080//5, 1440//5, 2160//5]
-PERIODS = [1, 5, 10, 20, 30, 45, 60, 180, 360, 720, 1440, 2160, 2880]
-BUY_RATES = [-.1, -.07, -.05, -.03, -.015, .015, .03, .05, .07, .1]
-SELL_RATES = [.01, .02, .03, .04, .05, .06, .07, .08, .09, .1]
-CUT_LOSS_RATES = [.01, .02, .03, .04, .05, .06, .07, .08, .09, .1]
 BUY_RATE = -.05
-SELL_RATE = .05
-CUT_LOSS_RATE = -.1
 PERIOD = 1
 GAP_EPOCH = 60 # 60 seconds
 DATA_START = '2025-01-01'
 DATA_END = '2026-03-29'
-WALK_FORWARD_OPT_WINDOW_DAYS = 14 # optimization window in days for walk-forward analysis
-WALK_FORWARD_TEST_WINDOW_DAYS = 14 # test window in days for walk-forward analysis (typically same as OPT_WINDOW_DAYS)
-NUM_PROCESSES = 18 # number of cores to use for parallelization
-
-BITSTAMP_SYMBOLS = [
-	'btcusd',
-	'ethusd',
-	'xrpusd',
-	'solusd',
-	'ltcusd',
-	'aaveusd',
-	'xlmusd',
-	'suiusd',
-	'dogeusd',
-	'hbarusd',
-	'adausd',
-	'linkusd',
-	'avaxusd',
-	'xdcusd',
-	'shibusd',
-	'dotusd',
-	#'maticusd',
-	'uniusd',
-	'ftmusd',
-	'pepeusd'
-	]
 
 # Columns in working df
 COLS = [
