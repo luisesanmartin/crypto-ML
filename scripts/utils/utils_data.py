@@ -250,20 +250,20 @@ def make_x(
 	price_ranges_oc_bin5 = bins[:, 4]
 
 	# Price range bins (OC) quantiles
-	binner_path = binners_path + 'standardizer_price_range_bins_oc_quantiles.pkl'
-	if for_prediction or for_validation:
-		with open(binner_path, 'rb') as f:
-			binner = pickle.load(f)
-	else:
-		binner = preprocessing.KBinsDiscretizer(n_bins=4, encode='onehot-dense', strategy='quantile')
-		binner.fit(price_ranges_oc_np)
-		with open(binner_path, 'wb') as f:
-			pickle.dump(binner, f)
-	bins = binner.transform(price_ranges_oc_np)
-	price_ranges_oc_bin1_quant = bins[:, 0]
-	price_ranges_oc_bin2_quant = bins[:, 1]
-	price_ranges_oc_bin3_quant = bins[:, 2]
-	price_ranges_oc_bin4_quant = bins[:, 3]
+	#binner_path = binners_path + 'standardizer_price_range_bins_oc_quantiles.pkl'
+	#if for_prediction or for_validation:
+	#	with open(binner_path, 'rb') as f:
+	#		binner = pickle.load(f)
+	#else:
+	#	binner = preprocessing.KBinsDiscretizer(n_bins=4, encode='onehot-dense', strategy='quantile')
+	#	binner.fit(price_ranges_oc_np)
+	#	with open(binner_path, 'wb') as f:
+	#		pickle.dump(binner, f)
+	#bins = binner.transform(price_ranges_oc_np)
+	#price_ranges_oc_bin1_quant = bins[:, 0]
+	#price_ranges_oc_bin2_quant = bins[:, 1]
+	#price_ranges_oc_bin3_quant = bins[:, 2]
+	#price_ranges_oc_bin4_quant = bins[:, 3]
 
 	# Price range bins (HL)
 	price_ranges_hl_np = np.array(price_ranges_hl).reshape(-1, 1)
@@ -422,10 +422,10 @@ def make_x(
 		price_ranges_oc_bin3,
 		price_ranges_oc_bin4,
 		price_ranges_oc_bin5,
-		price_ranges_oc_bin1_quant,
-		price_ranges_oc_bin2_quant,
-		price_ranges_oc_bin3_quant,
-		price_ranges_oc_bin4_quant,
+		#price_ranges_oc_bin1_quant,
+		#price_ranges_oc_bin2_quant,
+		#price_ranges_oc_bin3_quant,
+		#price_ranges_oc_bin4_quant,
 		#price_ranges_oc_bin5_quant,
 		#price_ranges_oc_bin6_quant,
 		#price_ranges_oc_bin7_quant,

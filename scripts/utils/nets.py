@@ -8,7 +8,7 @@ class net1(nn.Module):
 			device = torch.device('cuda')
 		else:
 			device = torch.device('cpu')
-        self.linear1 = nn.Linear(85, 64)
+        self.linear1 = nn.Linear(81, 64)
         self.linear2 = nn.Linear(64, 32)
         self.linear3 = nn.Linear(32, 16)
         self.linear4 = nn.Linear(16, 1)
