@@ -70,23 +70,45 @@ def make_x_predict(data_dic):
 
 def make_data_train_test(data_dic, cols=objects.COLS):
 
-	# Variables needed only in training
+	# Split times at temporal boundary BEFORE creating features
+	# This prevents standardizers from seeing test data
 	times = list(data_dic.keys())
-	valleys = [utils_features.is_valley(data_dic, time) for time in times]
-
-	# All other variables
-	data = make_x(data_dic, for_prediction=False, for_validation=False)
-	data = [times, valleys] + data
-	df = pd.DataFrame(dict(zip(cols, data)))
-
-	# Removing obs with any nan
-	n1 = len(df)
-	df = df.dropna(how='any')
-	n2 = len(df)
-	print(f'\tObservations: {n2}')
-	print(f'\tKept {round(n2/n1*100)}% of initial obs after dropping columns with missings')
-
-	df_train, df_test = model_selection.train_test_split(df, test_size=objects.TEST_SIZE)
+	split_idx = int(len(times) * (1 - objects.TEST_SIZE))
+	train_times = times[:split_idx]
+	test_times = times[split_idx:]
+	
+	# Create filtered data dictionaries for train and test
+	train_data_dic = {time: data_dic[time] for time in train_times}
+	test_data_dic = {time: data_dic[time] for time in test_times}
+	
+	# Generate labels separately for train and test
+	train_valleys = [utils_features.is_valley(train_data_dic, time) for time in train_times]
+	test_valleys = [utils_features.is_valley(test_data_dic, time) for time in test_times]
+	
+	# Generate features with proper standardizer handling:
+	# - Train: fit standardizers on training data only (for_prediction=False, for_validation=False)
+	# - Test: load saved standardizers (for_prediction=False, for_validation=True)
+	train_x = make_x(train_data_dic, for_prediction=False, for_validation=False)
+	test_x = make_x(test_data_dic, for_prediction=False, for_validation=True)
+	
+	# Create dataframes for train and test
+	train_df_data = [train_times, train_valleys] + train_x
+	df_train = pd.DataFrame(dict(zip(cols, train_df_data)))
+	
+	test_df_data = [test_times, test_valleys] + test_x
+	df_test = pd.DataFrame(dict(zip(cols, test_df_data)))
+	
+	# Remove observations with any NaN values
+	n1_train = len(df_train)
+	df_train = df_train.dropna(how='any')
+	n2_train = len(df_train)
+	
+	n1_test = len(df_test)
+	df_test = df_test.dropna(how='any')
+	n2_test = len(df_test)
+	
+	print(f'\tTrain observations: {n2_train} (kept {round(n2_train/n1_train*100)}% after dropping NaNs)')
+	print(f'\tTest observations: {n2_test} (kept {round(n2_test/n1_test*100)}% after dropping NaNs)')
 
 	return df_train, df_test
 

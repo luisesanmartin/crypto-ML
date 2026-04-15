@@ -16,9 +16,9 @@ def main():
 		device = torch.device('cpu')
 	print('Using device: {}'.format(device))
 
-	test_data_file = '../data/working/data_test.csv'
-	test_data_file2 = '../data/working/data_validation.csv'
-	model_path = '../models/classifiers/torch-net-valleys-20241118.pkl'
+	train_data_file = '../data/working/data_train.csv'
+	validation_data_file = '../data/working/data_validation.csv'
+	model_path = '../models/classifiers/torch-net-valleys-20260414.pkl'
 	if os.path.isfile(model_path):
 		model = torch.load(model_path)
 		print('Using existing model')
