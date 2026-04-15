@@ -64,7 +64,7 @@ def train(
 	accuracy_file=None,
 	net_file=None,
 	test_data_file=None,
-	test_data_file2=None):
+	return_val_loss=False):
 
 	model = model.to(device=device)
 	model.train()
@@ -95,65 +95,40 @@ def train(
 
 	if epoch % 100 == 0 and test_data_file:
 
-		# test set
+		val_loss = None
+		
+		# validation set (for early stopping)
 		df = pd.read_csv(test_data_file)
 		x_test_np = df.drop(columns=['time', 'valley']).to_numpy()
 		x_test = torch.from_numpy(x_test_np).to(device=device).float()
 		y_test_np = df['valley'].to_numpy()
 		y_test = torch.from_numpy(y_test_np).to(device=device).float()
 
-		# Evaluating accuracy (on test set)
+		# Evaluating accuracy (on validation set)
 		model.eval()
 		with torch.no_grad():
 			y_logits = model(x_test).squeeze()
 			y_score = torch.sigmoid(y_logits)
 			y_pred = torch.round(y_score)
-		loss = loss_estimation(y_logits, y_test, device)
+		val_loss = loss_estimation(y_logits, y_test, device)
 		accuracy = estimate_accuracy(y_pred, y_test)
 		precision = estimate_precision(y_pred, y_test)
 		precision_threshold = precision_with_threshold(y_score, y_test)
-		threshold2 = 0.9
+		threshold2 = objects.PREDICT_THRESHOLD2
 		precision_threshold2 = precision_with_threshold(y_score, y_test, threshold=threshold2)
 		recall = estimate_recall(y_pred, y_test)
 
 		print(f'\nEpoch: {epoch}')
-		print(f'\tLoss: {loss:.5f}')
+		print(f'\n\tValidation Loss: {val_loss:.5f}')
 		print(f'\tPrecision: {precision:.5f}')
 		print(f'\tPrecision at {objects.PREDICT_THRESHOLD:.2f} threshold: {precision_threshold:.5f}')
 		print(f'\tPrecision at {threshold2:.2f} threshold: {precision_threshold2:.5f}')
 		print(f'\tRecall: {recall:.5f}')
 		print(f'\tAccuracy: {accuracy:.5f}')
 
-		if test_data_file2:
+	if return_val_loss:
+		return val_loss
 
-			# test set
-			df = pd.read_csv(test_data_file2)
-			x_test_np = df.drop(columns=['time', 'valley']).to_numpy()
-			x_test = torch.from_numpy(x_test_np).to(device=device).float()
-			y_test_np = df['valley'].to_numpy()
-			y_test = torch.from_numpy(y_test_np).to(device=device).float()
-
-			# Evaluating accuracy (on test set)
-			model.eval()
-			with torch.no_grad():
-				y_logits = model(x_test).squeeze()
-				y_score = torch.sigmoid(y_logits)
-				y_pred = torch.round(y_score)
-			loss = loss_estimation(y_logits, y_test, device)
-			accuracy = estimate_accuracy(y_pred, y_test)
-			precision = estimate_precision(y_pred, y_test)
-			precision_threshold = precision_with_threshold(y_score, y_test)
-			precision_threshold2 = precision_with_threshold(y_score, y_test, threshold=threshold2)
-			recall = estimate_recall(y_pred, y_test)
-
-			print(f'\n\tLoss: {loss:.5f}')
-			print(f'\tPrecision: {precision:.5f}')
-			print(f'\tPrecision at {objects.PREDICT_THRESHOLD:.2f} threshold: {precision_threshold:.5f}')
-			print(f'\tPrecision at {threshold2:.2f} threshold: {precision_threshold2:.5f}')
-			print(f'\tRecall: {recall:.5f}')
-			print(f'\tAccuracy: {accuracy:.5f}')
-
-
-	# Saving model and loss results
+	# Saving model
 	if epoch % 100 == 0 and net_file:
 		torch.save(model, net_file)

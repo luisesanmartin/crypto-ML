@@ -12,6 +12,7 @@ VALLEY_PERIODS = 18 # this times 10 minutes divided by 60 is the number of hours
 POS_WEIGHTS = (79351-6040)/6040 # neg samples / pos samples
 TEST_SIZE = 0.2
 PREDICT_THRESHOLD = 0.7
+PREDICT_THRESHOLD2 = 0.9
 #PERIODS = [5//5, 30//5, 60//5, 90//5, 120//5, 180//5, 240//5, 300//5, 360//5, 480//5, 600//5, 720//5, 1080//5, 1440//5, 2160//5]
 PERIODS = [1, 5, 10, 20, 30, 45, 60, 180, 360, 720, 1440, 2160, 2880]
 BUY_RATES = [-.1, -.07, -.05, -.03, -.015, .015, .03, .05, .07, .1]
